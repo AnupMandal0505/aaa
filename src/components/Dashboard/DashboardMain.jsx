@@ -3,9 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsBubbles, faFilePen, faCamera, faMicrophoneLines } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 const DashboardMain = () => {
-
-
+  const navigate = useNavigate();
   const [callHistory, setCallHistory] = useState([]);
   const [error, setError] = useState("");
 
@@ -33,6 +33,10 @@ const DashboardMain = () => {
     fetchCallHistory();
   }, []);
 
+
+  const caling = (dialer) => {
+    navigate(`/calling/${dialer}`);
+  }
 
 
   return (
@@ -91,7 +95,7 @@ const DashboardMain = () => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '20px', paddingRight: '60px' }}>
-                    <button className='join-btn'>join</button>
+                    <button className='join-btn' onClick={() => caling(item.receiver)}>join</button>
                     <button className='edit-btn'>edit</button>
                   </div>
                 </div>
