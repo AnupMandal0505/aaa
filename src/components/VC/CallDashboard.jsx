@@ -1,80 +1,77 @@
-"use client"
 import React, { useEffect, useRef, useState } from 'react';
-import { initializeHandTracking } from './helper'
-import { toggleAudio, toggleVideo } from './localStream'
+import { initializeHandTracking } from './helper';
 import { useSocket } from '../../Context/SocketProvider';
-import './VideoCall.css';
+import { VideoOff, Video, Mic, MicOff, MessageSquare, Volume2, X, User } from 'lucide-react';
 
-const CallDashboard
-    = () => {
-        const canvasRef = useRef(null);
-        const [error, setError] = useState('');
-        const [isLoading, setIsLoading] = useState(true);
-        const [currentWord, setCurrentWord] = useState([]);
-        const [sentence, setSentence] = useState([]);
-        const [prediction, setPrediction] = useState('');
+const CallDashboard = () => {
+    // Refs
+    const canvasRef = useRef(null);
+    const handTrackerRef = useRef(null);
+    const prevCharacterRef = useRef('');
+    const consecutiveCountRef = useRef(0);
 
-        const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-        const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+    // States
+    const [currentWord, setCurrentWord] = useState('');
+    const [sentence, setSentence] = useState('');
+    const [prediction, setPrediction] = useState('');
+    const [isFildOn, setIsFieldOn] = useState(false);
+    const [isText, setIsText] = useState(true);
+    const [isSpeak, setIsSpeak] = useState(true);
 
-        // Arghya's assigned states
-        const [isFildOn, setIsFieldOn] = useState(false);
-        const [isText, setIsText] = useState(true);
-        const [isSpeak, setIsSpeak] = useState(true);
-        const toggleText = () => {
-            setIsText(!isText);
-            setIsFieldOn(!isFildOn);
-        }
-        const toggleSpeak = () => setIsSpeak(!isSpeak);
+    // Constants
+    const requiredCount = 10;
 
-        //
+    // Get socket context
+    const {
+        localVideoRef,
+        remoteVideoRef,
+        remoteUserName,
+        isVideoEnabled,
+        isAudioEnabled,
+        toggleVideo,
+        toggleAudio,
+        isLoading,
+        setIsLoading,
+        error,
+        setError
+    } = useSocket();
 
-        const handTrackerRef = useRef(null);
-        const prevCharacterRef = useRef('');
-        const consecutiveCountRef = useRef(0);
-        const requiredCount = 10;
+    const toggleText = () => {
+        setIsText(!isText);
+        setIsFieldOn(!isFildOn);
+    };
 
-        const {
-            localVideoRef,
-            remoteVideoRef,
-            remoteUserName,
-            localMediaStream
-        } = useSocket();
+    const toggleSpeak = () => setIsSpeak(!isSpeak);
 
-        const waitForRemoteStream = async (stream) => {
-            // Polling interval in milliseconds
-            const interval = 100;
+    const waitForRemoteStream = () => {
+        return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+                if (remoteVideoRef?.current?.srcObject) {
+                    clearInterval(checkInterval);
+                    resolve(true);
+                }
+            }, 100);
 
-            // Function to check if remoteVideoRef is ready
-            const checkRemoteVideoRef = () => {
-                return new Promise((resolve) => {
-                    const checkInterval = setInterval(() => {
-                        if (remoteVideoRef?.current && remoteVideoRef.current?.srcObject) {
-                            clearInterval(checkInterval);
-                            resolve(remoteVideoRef.current);
-                        }
-                    }, interval);
-                });
-            };
+            // Timeout after 30 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve(false);
+            }, 30000);
+        });
+    };
 
+    useEffect(() => {
+        let mounted = true;
+
+        const initializeCall = async () => {
             try {
-                const videoRefElement = await checkRemoteVideoRef();
-                console.log(stream, videoRefElement);
-            } catch (error) {
-                console.error("Error waiting for remoteVideoRef:", error);
-            }
-        };
+                const streamReady = await waitForRemoteStream();
+                if (!streamReady || !mounted) return;
 
-
-        useEffect(() => {
-            let stream = null;
-            let intervalId = null;
-
-            waitForRemoteStream(stream)
-                .then(() => initializeHandTracking({
+                await initializeHandTracking({
                     setIsLoading,
                     canvasRef,
-                    videoRef: remoteVideoRef,
+                    remoteVideoRef,
                     handTrackerRef,
                     setError,
                     prevCharacterRef,
@@ -84,151 +81,191 @@ const CallDashboard
                     setSentence,
                     setCurrentWord,
                     sentence,
-                    setPrediction,
-                    intervalId
-                }))
-                .catch((err) => {
-                    console.log(`Error waiting for remote stream ${err}`)
-                })
+                    setPrediction
+                });
+            } catch (err) {
+                console.error('Error initializing call:', err);
+                setError('Failed to initialize video call');
+            }
+        };
 
-            return () => {
-                if (stream) {
-                    console.log("Destructer stream")
-                    //@ts-ignore
-                    stream.getTracks().forEach((track) => track.stop());
-                }
-                if (intervalId) {
-                    clearInterval(intervalId)
-                }
-                if (handTrackerRef.current) {
-                    handTrackerRef.current?.close();
-                }
-            };
-        }, []);
+        initializeCall();
 
+        return () => {
+            mounted = false;
+            if (handTrackerRef.current) {
+                handTrackerRef.current.close();
+            }
+        };
+    }, []);
+
+    if (error) {
         return (
-            <div className="flex flex-col items-center h-screen bg-gray-100">
-                {isLoading && <h1 className='mt-2'>Calling to {remoteUserName}....</h1>}
-                <div style={{ display: 'flex' }}>
-                    <div className="">
+            <div className="flex items-center justify-center h-screen bg-gray-100">
+                <div className="text-red-500 text-center">
+                    <p className="text-xl font-semibold">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
-                        {/* Receiver's Video Feed (Large Screen) */}
-                        <div className={`${isFildOn ? "riciver-video-left" : "riciver-video-right"}`}>
-                            <video ref={remoteVideoRef} className="w-full h-full object-cover" autoPlay muted />
-                            <canvas
-                                ref={canvasRef}
-                                style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '100%'
-                                }}
-                            />
-
-                            {/* Audio Control (Mute/Unmute) */}
-                            {/*
-          <div className="absolute bottom-2 right-2 bg-gray-900 bg-opacity-50 p-2 rounded-full cursor-pointer" onClick={toggleAudio}>
-            {isAudioOn ? (
-              <span className="text-white text-xl">🔊</span>
-            ) : (
-              <span className="text-white text-xl">🔇</span>
-            )}
-          </div>
-          */}
-                        </div>
-
-
-                        <div className={`${isFildOn ? "overlay-video-call-left" : "overlay-video-call-right"}`}>
-                            {/* Audio Toggle Button (Below the Screens) */}
-                            <div className="call-menu">
-                                <button
-                                    className={' text-white p-2 bg-red-500'}
-                                    onClick={() => window.location.replace('/')}
-                                    style={{ width: '100px', height: '60px', borderRadius: '10px', fontWeight: '700' }}
-                                >
-                                    End Call
-                                </button>
-                                <button
-                                    className={`bg-gray-800 text-white p-2 ${isAudioEnabled ? 'bg-green-500' : 'bg-red-500'}`}
-                                    onClick={()=>toggleAudio(localMediaStream,setIsAudioEnabled)}
-                                    style={{ width: '60px', height: '60px', borderRadius: '50%', fontWeight: '700' }}
-                                >
-                                    {isAudioEnabled ? <span className="text-white text-xl">🔊</span> : <span className="text-white text-xl">🔇</span>}
-                                </button>
-                                <button
-                                    className={`bg-gray-800 text-white p-2 ${isVideoEnabled ? 'bg-green-500' : 'bg-red-500'}`}
-                                    onClick={()=>toggleVideo(localMediaStream,setIsVideoEnabled)}
-                                    style={{ width: '60px', height: '60px', borderRadius: '50%', fontWeight: '700' }}
-                                >
-                                    {isVideoEnabled ? <span className="text-white text-xl">Video On</span> : <span className="text-white text-xl">Video off</span>}
-                                </button>
-                                <button
-                                    className={`bg-gray-800 text-white p-2`}
-                                    onClick={toggleText}
-                                    style={{ width: '60px', height: '60px', borderRadius: '50%', fontWeight: '700' }}
-                                >
-                                    {isText ? 'Text' : <span className="text-white text-xl">❌</span>}
-                                </button>
-                                <button
-                                    className={`bg-gray-800 text-white p-2`}
-                                    onClick={toggleSpeak}
-                                    style={{ width: '60px', height: '60px', borderRadius: '50%', fontWeight: '700' }}
-                                >
-                                    {isSpeak ? 'Audio' : <span className="text-white text-xl">❌</span>}
-                                </button>
+    return (
+        <div className="flex flex-col h-screen bg-gray-900">
+            {isLoading && (
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-gray-800 p-6 rounded-xl shadow-2xl">
+                        <div className="animate-pulse flex flex-col items-center">
+                            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+                                <User size={32} className="text-white" />
                             </div>
-                            {/* Sender's Video Feed (Small Screen with Camera Control) */}
-                            <div className="sender-video relative">
-                                {isVideoEnabled ? (
-                                    <video ref={localVideoRef} className="w-full h-full object-cover" autoPlay muted />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-white">
-                                        <p>Your Video is Off</p>
-                                    </div>
-                                )}
-
-                                {/* Camera Control (Video On/Off) */}
-                                {/* <div className="absolute top-2 right-2 bg-gray-900 bg-opacity-50 p-2 rounded-full cursor-pointer" onClick={toggleVideo}>
-              {isVideoOn ? (
-                <span className="text-white text-xl">📷</span>
-              ) : (
-                <span className="text-white text-xl">❌</span>
-              )}
-            </div> */}
+                            <div className="text-white text-xl font-medium">
+                                Connecting with {remoteUserName}...
                             </div>
                         </div>
                     </div>
-                    <div className={`${isFildOn ? "field-on" : "field-off"}`}>
-                        <div
-                            style={{
-                                backgroundColor: '#a9a9a9',
-                                width: '30vw',
-                                height: '85vh',
-                                borderRadius: '10px',
-                                border: '4px solid #ffffff',
-                                boxShadow: '0px 0px 20px 1px #a9a9a9',
-                            }}
-                            className="p-4 overflow-auto"
-                        >
-                            {/* Words Paragraph */}
-                            <p className="text-white p-3 rounded-md break-words mb-4">
-                                <span className="font-bold">Words: </span>
-                                {currentWord}
-                            </p>
+                </div>
+            )}
 
-                            {/* Sentence Paragraph */}
-                            <p className="text-lg mt-4">
-                                <span className="font-bold">Sentence: </span>{sentence}
-                            </p>
+            <div className="flex w-full h-full">
+                <div className="relative flex-1">
+                    {/* Remote User Info Bar */}
+                    <div className="absolute top-4 left-4 z-10 bg-black/40 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <User size={16} className="text-white" />
+                        </div>
+                        <span className="text-white font-medium">{remoteUserName}</span>
+                        <div className={`w-2 h-2 rounded-full ${isAudioEnabled ? 'bg-green-500' : 'bg-red-500'}`} />
+                    </div>
+
+                    {/* Remote Video */}
+                    <div className={`w-full h-full ${isFildOn ? "riciver-video-left" : "riciver-video-right"}`}>
+                        <video
+                            ref={remoteVideoRef}
+                            className="w-full h-full object-cover"
+                            autoPlay
+                            playsInline
+                        />
+                        <canvas
+                            ref={canvasRef}
+                            className="absolute inset-0 w-full h-full"
+                        />
+                    </div>
+
+                    {/* Controls Overlay */}
+                    <div className={`absolute ${isFildOn ? "left-4" : "right-4"} bottom-4 flex flex-col items-end gap-4`}>
+                        {/* Local Video */}
+                        <div className="w-64 h-48 overflow-hidden rounded-2xl shadow-2xl border-4 border-gray-800 bg-gray-900">
+                            <div className="relative w-full h-full">
+                                {/* Video Element */}
+                                <video
+                                    ref={localVideoRef}
+                                    className="w-full h-full object-cover"
+                                    autoPlay
+                                    muted
+                                    playsInline
+                                    style={{ display: isVideoEnabled ? 'block' : 'none' }} // Hide video when camera is off
+                                />
+
+                                {/* Camera Off Overlay */}
+                                {!isVideoEnabled && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+                                        <div className="text-center">
+                                            <VideoOff size={32} className="text-gray-400 mx-auto mb-2" />
+                                            <p className="text-gray-400 font-medium">Camera Off</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
+                        {/* Control Buttons */}
+                        <div className="flex items-center gap-3 p-2 bg-black/40 backdrop-blur-md rounded-2xl">
+                            <button
+                                onClick={() => window.location.replace('/')}
+                                className="px-6 py-3 bg-red-500/90 hover:bg-red-600 text-white rounded-xl font-medium transition-colors"
+                            >
+                                End Call
+                            </button>
+
+                            <div className="w-px h-8 bg-gray-700" /> {/* Divider */}
+
+                            <button
+                                onClick={toggleAudio}
+                                className={`p-4 rounded-xl ${isAudioEnabled ? 'bg-green-500/90 hover:bg-green-600' : 'bg-red-500/90 hover:bg-red-600'} transition-colors`}
+                            >
+                                {isAudioEnabled ? <Mic size={20} className="text-white" /> : <MicOff size={20} className="text-white" />}
+                            </button>
+
+                            <button
+                                onClick={toggleVideo}
+                                className={`p-4 rounded-xl ${isVideoEnabled ? 'bg-green-500/90 hover:bg-green-600' : 'bg-red-500/90 hover:bg-red-600'} transition-colors`}
+                            >
+                                {isVideoEnabled ? <Video size={20} className="text-white" /> : <VideoOff size={20} className="text-white" />}
+                            </button>
+
+                            <button
+                                onClick={toggleText}
+                                className={`p-4 rounded-xl ${isText ? 'bg-blue-500/90 hover:bg-blue-600' : 'bg-gray-600/90 hover:bg-gray-700'} transition-colors`}
+                            >
+                                {isText ? <MessageSquare size={20} className="text-white" /> : <X size={20} className="text-white" />}
+                            </button>
+
+                            <button
+                                onClick={toggleSpeak}
+                                className={`p-4 rounded-xl ${isSpeak ? 'bg-blue-500/90 hover:bg-blue-600' : 'bg-gray-600/90 hover:bg-gray-700'} transition-colors`}
+                            >
+                                {isSpeak ? <Volume2 size={20} className="text-white" /> : <X size={20} className="text-white" />}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-            </div >
-        );
-    };
+                {/* Text Field Panel */}
+                <div className={`transition-all duration-300 ${isFildOn ? "field-on" : "field-off"}`}>
+                    <div className="bg-gray-800/90 backdrop-blur-md w-[30vw] h-[85vh] rounded-2xl border border-gray-700 shadow-2xl p-6 overflow-auto">
+                        <div className="space-y-6">
+                            <div className="bg-gray-900/50 p-5 rounded-xl">
+                                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                                    Current Word
+                                </h3>
+                                <p className="text-gray-300 break-words text-lg">
+                                    {currentWord || "No word detected"}
+                                </p>
+                            </div>
 
-export default CallDashboard
-    ;
+                            <div className="bg-gray-900/50 p-5 rounded-xl">
+                                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                                    Sentence
+                                </h3>
+                                <p className="text-gray-300 break-words text-lg">
+                                    {sentence || "No sentence formed yet"}
+                                </p>
+                            </div>
+
+                            {prediction && (
+                                <div className="bg-gray-900/50 p-5 rounded-xl">
+                                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                                        <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+                                        Current Prediction
+                                    </h3>
+                                    <p className="text-gray-300 text-lg">{prediction}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+export default CallDashboard;

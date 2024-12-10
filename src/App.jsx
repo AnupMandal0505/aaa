@@ -68,7 +68,7 @@ import Signup from './pages/Signup'
 // index.js
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Service from './pages/Service'
-import SocketProvider from './Context/SocketProvider'
+import {SocketProvider} from './Context/SocketProvider'
 import Navbar from './components/Navbar'
 import Dashbord from './pages/Dashbord'
 import { useState, useContext, createContext } from 'react';
