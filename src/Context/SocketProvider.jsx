@@ -1,4 +1,3 @@
-// SocketProvider.js
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
@@ -114,6 +113,7 @@ const SocketProvider = ({ children }) => {
     const localVideoRef = useRef();
     const handTrackerRef = useRef(null);
     const timeoutRef = useRef(null);
+    const iceCandidatesQueue = useRef([]);
 
     // Initialize socket and peer connection
     const socket = useMemo(() => io(URL), []);
@@ -129,27 +129,96 @@ const SocketProvider = ({ children }) => {
     const setupLocalStream = useCallback(async (stream) => {
         if (!localVideoRef.current) return;
         
-        const videoTrack = stream.getVideoTracks()[0];
-        const localStream = new MediaStream([videoTrack]);
-        localVideoRef.current.srcObject = localStream;
+        localVideoRef.current.srcObject = stream;
+        localVideoRef.current.muted = true; // Mute local video to prevent echo
         
         try {
             await localVideoRef.current.play();
+            console.log('Local video playing');
         } catch (error) {
             console.error("Failed to play local video:", error);
         }
     }, []);
 
-    const setupRemoteStream = useCallback(async (stream) => {
-        if (!remoteVideoRef.current) return;
+    const processIceCandidates = useCallback(async () => {
+        if (pc.remoteDescription === null) return;
         
-        remoteVideoRef.current.srcObject = stream;
-        try {
-            await remoteVideoRef.current.play();
-        } catch (error) {
-            console.error("Failed to play remote video:", error);
+        while (iceCandidatesQueue.current.length > 0) {
+            const candidate = iceCandidatesQueue.current.shift();
+            try {
+                await pc.addIceCandidate(candidate);
+                console.log('Processed queued ICE candidate');
+            } catch (error) {
+                console.error("Error adding queued ICE candidate:", error);
+            }
         }
-    }, []);
+    }, [pc]);
+
+    const setupPeerConnection = useCallback(() => {
+        // Reset any existing handlers
+        pc.ontrack = null;
+        pc.onicecandidate = null;
+        pc.onnegotiationneeded = null;
+
+        // Set up track handler
+        pc.ontrack = (event) => {
+            console.log('Track received:', event.track.kind);
+            
+            if (!remoteVideoRef.current) {
+                console.error('Remote video element not available');
+                return;
+            }
+
+            // Create a new MediaStream if we don't have one
+            if (!remoteMediaStream.current) {
+                remoteMediaStream.current = new MediaStream();
+                remoteVideoRef.current.srcObject = remoteMediaStream.current;
+            }
+
+            // Add the track to our media stream
+            remoteMediaStream.current.addTrack(event.track);
+            
+            // Store track references
+            if (event.track.kind === 'video') {
+                remoteVideoTrack.current = event.track;
+            } else if (event.track.kind === 'audio') {
+                remoteAudioTrack.current = event.track;
+            }
+
+            // Play the video when we get a video track
+            if (event.track.kind === 'video') {
+                const playVideo = async () => {
+                    try {
+                        remoteVideoRef.current.autoplay = true;
+                        remoteVideoRef.current.playsInline = true;
+                        await remoteVideoRef.current.play();
+                        console.log('Remote video playing');
+                    } catch (err) {
+                        console.error('Failed to play remote video:', err);
+                    }
+                };
+                playVideo();
+            }
+        };
+
+        // Log connection states
+        pc.onconnectionstatechange = () => {
+            console.log('Connection state:', pc.connectionState);
+            if (pc.connectionState === 'connected') {
+                console.log('Peer connection established');
+            }
+        };
+
+        pc.oniceconnectionstatechange = () => {
+            console.log('ICE connection state:', pc.iceConnectionState);
+        };
+
+        pc.onsignalingstatechange = () => {
+            console.log('Signaling state:', pc.signalingState);
+        };
+
+        return pc;
+    }, [pc]);
 
     const getCamAndPlay = useCallback(async () => {
         try {
@@ -178,16 +247,6 @@ const SocketProvider = ({ children }) => {
                 localVideoTrack.current.enabled = !localVideoTrack.current.enabled;
                 setIsVideoEnabled(localVideoTrack.current.enabled);
 
-                if (localVideoRef.current) {
-                    if (!localVideoTrack.current.enabled) {
-                        localVideoRef.current.srcObject = null;
-                    } else {
-                        const stream = new MediaStream([localVideoTrack.current]);
-                        localVideoRef.current.srcObject = stream;
-                        await localVideoRef.current.play().catch(console.error);
-                    }
-                }
-
                 socket.emit('mediaStateChange', {
                     type: 'video',
                     enabled: localVideoTrack.current.enabled
@@ -214,36 +273,34 @@ const SocketProvider = ({ children }) => {
         }
     }, [socket]);
 
-    const handleIncomingTrack = useCallback((event) => {
-        if (!remoteVideoRef.current) return;
-        
-        const [remoteStream] = event.streams;
-        remoteMediaStream.current = remoteStream;
-        setupRemoteStream(remoteStream);
-    }, [setupRemoteStream]);
-
     const cleanup = useCallback(() => {
-        [localAudioTrack, localVideoTrack].forEach(track => {
-            if (track.current) {
-                track.current.stop();
-                track.current = null;
-            }
-        });
+        if (localMediaStream.current) {
+            localMediaStream.current.getTracks().forEach(track => track.stop());
+            localMediaStream.current = null;
+        }
 
         if (remoteMediaStream.current) {
             remoteMediaStream.current.getTracks().forEach(track => track.stop());
             remoteMediaStream.current = null;
         }
 
+        [remoteVideoRef, localVideoRef].forEach(ref => {
+            if (ref.current) {
+                ref.current.srcObject = null;
+            }
+        });
+
+        [localAudioTrack, localVideoTrack, remoteAudioTrack, remoteVideoTrack].forEach(ref => {
+            ref.current = null;
+        });
+
         if (handTrackerRef.current) {
             handTrackerRef.current.close();
             handTrackerRef.current = null;
         }
 
-        [remoteVideoRef, localVideoRef].forEach(ref => {
-            if (ref.current) ref.current.srcObject = null;
-        });
-
+        iceCandidatesQueue.current = [];
+        
         if (pc) {
             pc.close();
         }
@@ -255,16 +312,7 @@ const SocketProvider = ({ children }) => {
     const handleCall = useCallback(async (receiverName) => {
         setRemoteUserName(receiverName);
         socket.emit("call", receiverName);
-        
-        // const interval = setInterval(() => {
-        //     if (lobby) {
-        //         clearInterval(interval);
-        //         return;
-        //     }
-        // }, 1000);
-
-        // setTimeout(() => clearInterval(interval), 10000);
-    }, [lobby, socket]);
+    }, [socket]);
 
     const handleCallResponse = useCallback(async (senderName, accept) => {
         if (accept) {
@@ -277,21 +325,20 @@ const SocketProvider = ({ children }) => {
         }
     }, [getCamAndPlay, socket]);
 
-    useEffect(()=>{
-        if(userName && socket) socket.emit('addUser', userName);
-    },[userName])
+    useEffect(() => {
+        if (userName && socket) socket.emit('addUser', userName);
+    }, [userName, socket]);
 
     // Socket event handlers
     useEffect(() => {
         if (!userName || !socket) return;
-        
-        // socket.emit('addUser', userName);
 
         socket.on('connect', () => {
             console.log('Connected to socket server');
         });
 
         socket.on("rejectCall", (canceledBy) => {
+            cleanup();
             setRemoteUserName(null);
             setNotify(false);
             setError(`Call rejected by ${canceledBy}`);
@@ -321,17 +368,19 @@ const SocketProvider = ({ children }) => {
         });
 
         socket.on('send-offer', async ({ roomId }) => {
-            await getCamAndPlay();
-            
-            pc.ontrack = handleIncomingTrack;
-            
-            if (localMediaStream.current) {
-                localMediaStream.current.getTracks().forEach(track => 
-                    pc.addTrack(track, localMediaStream.current)
-                );
-            }
-
             try {
+                await getCamAndPlay();
+                
+                // Set up peer connection before creating offer
+                setupPeerConnection();
+                
+                if (localMediaStream.current) {
+                    localMediaStream.current.getTracks().forEach(track => {
+                        console.log('Adding local track to peer connection:', track.kind);
+                        pc.addTrack(track, localMediaStream.current);
+                    });
+                }
+
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
                 socket.emit("offer", { sdp: offer, roomId });
@@ -355,13 +404,17 @@ const SocketProvider = ({ children }) => {
             try {
                 await getCamAndPlay();
                 
-                pc.ontrack = handleIncomingTrack;
+                // Set up peer connection before handling offer
+                setupPeerConnection();
+                
                 await pc.setRemoteDescription(remoteSdp);
+                await processIceCandidates();
                 
                 if (localMediaStream.current) {
-                    localMediaStream.current.getTracks().forEach(track => 
-                        pc.addTrack(track, localMediaStream.current)
-                    );
+                    localMediaStream.current.getTracks().forEach(track => {
+                        console.log('Adding local track to peer connection:', track.kind);
+                        pc.addTrack(track, localMediaStream.current);
+                    });
                 }
 
                 const answer = await pc.createAnswer();
@@ -387,6 +440,7 @@ const SocketProvider = ({ children }) => {
         socket.on("answer", async ({ sdp: remoteSdp }) => {
             try {
                 await pc.setRemoteDescription(remoteSdp);
+                await processIceCandidates();
                 setLobby(false);
             } catch (error) {
                 console.error("Error handling answer:", error);
@@ -396,9 +450,15 @@ const SocketProvider = ({ children }) => {
 
         socket.on("add_ice_candidate", async ({ candidate }) => {
             try {
-                await pc.addIceCandidate(candidate);
+                if (pc.remoteDescription) {
+                    await pc.addIceCandidate(candidate);
+                    console.log('Added ICE candidate');
+                } else {
+                    console.log('Queueing ICE candidate');
+                    iceCandidatesQueue.current.push(candidate);
+                }
             } catch (error) {
-                console.error("Error adding ICE candidate:", error);
+                console.error("Error handling ICE candidate:", error);
             }
         });
 
@@ -417,8 +477,9 @@ const SocketProvider = ({ children }) => {
         return () => {
             socket.off();
             cleanup();
+            iceCandidatesQueue.current = [];
         };
-    }, [socket, cleanup, getCamAndPlay, handleIncomingTrack, pc]);
+    }, [socket, cleanup, getCamAndPlay, pc, processIceCandidates, setupPeerConnection, lobby]);
 
     const navigate = useNavigate();
 
