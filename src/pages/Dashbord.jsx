@@ -39,8 +39,8 @@ const Dashbord = () => {
                 <div onClick={() => setPage(1)} className='dash-menu-set'><img src={i2} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Call History</p></div>
                 <div onClick={() => setPage(2)} className='dash-menu-set'><img src={i3} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Bit History</p></div>
                 <div onClick={() => setPage(3)} className='dash-menu-set'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Payment History</p></div>
-                <div onClick={() => setPage(4)} className='dash-menu-set'><img src={i5} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Logout</p></div>
-                <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded"  > Logout</button>
+                <div onClick={handleLogout} className='dash-menu-set'><img src={i5} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Logout</p></div>
+                {/* <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded"  > Logout</button> */}
             </div>
 
             <div className='dash-cont' style={{ paddingTop: '20px' }}>

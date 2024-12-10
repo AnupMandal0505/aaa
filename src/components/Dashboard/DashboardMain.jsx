@@ -3,9 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsBubbles, faFilePen, faCamera, faMicrophoneLines } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 const DashboardMain = () => {
-  const navigate = useNavigate();
+
+
   const [callHistory, setCallHistory] = useState([]);
   const [error, setError] = useState("");
 
@@ -34,28 +34,68 @@ const DashboardMain = () => {
   }, []);
 
 
-  const caling = (dialer) => {
-    navigate(`/calling/${dialer}`);
-  }
-
 
   return (
     <div className="welcome-card">
 
 
       <div className="card-row-1">
-        <div className="bg-white shadow-md rounded-lg p-4">
-          <h3 className="text-xl font-bold mb-2">Card Title 1</h3>
-          <p className="text-gray-600">This is a simple card description.</p>
-        </div>
-        <div className="bg-white shadow-md rounded-lg p-4">
-          <h3 className="text-xl font-bold mb-2">Card Title 2</h3>
-          <p className="text-gray-600">This is another card description.</p>
-        </div>
-        <div className="bg-white shadow-md rounded-lg p-4">
-          <h3 className="text-xl font-bold mb-2">Card Title 3</h3>
-          <p className="text-gray-600">This is yet another card description.</p>
-        </div>
+      <div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
+  <div className="flex items-center">
+    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
+      <i className="fas fa-copy"></i>
+    </div>
+    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
+  </div>
+  <div className="mt-3 text-xl font-semibold">$34,245</div>
+  <div className="mt-1 flex items-center text-xs text-gray-500">
+    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
+    Get more space
+  </div>
+</div> 
+
+<div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
+  <div className="flex items-center">
+    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
+      <i className="fas fa-copy"></i>
+    </div>
+    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
+  </div>
+  <div className="mt-3 text-xl font-semibold">$34,245</div>
+  <div className="mt-1 flex items-center text-xs text-gray-500">
+    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
+    Get more space
+  </div>
+</div>
+
+<div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
+  <div className="flex items-center">
+    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
+      <i className="fas fa-copy"></i>
+    </div>
+    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
+  </div>
+  <div className="mt-3 text-xl font-semibold">$34,245</div>
+  <div className="mt-1 flex items-center text-xs text-gray-500">
+    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
+    Get more space
+  </div>
+</div>
+
+
+<div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
+  <div className="flex items-center">
+    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
+      <i className="fas fa-copy"></i>
+    </div>
+    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
+  </div>
+  <div className="mt-3 text-xl font-semibold">$34,245</div>
+  <div className="mt-1 flex items-center text-xs text-gray-500">
+    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
+    Get more space
+  </div>
+</div>
       </div>
 
 
@@ -95,7 +135,7 @@ const DashboardMain = () => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '20px', paddingRight: '60px' }}>
-                    <button className='join-btn' onClick={() => caling(item.receiver)}>join</button>
+                    <button className='join-btn'>join</button>
                     <button className='edit-btn'>edit</button>
                   </div>
                 </div>
