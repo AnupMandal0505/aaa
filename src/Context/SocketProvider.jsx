@@ -42,14 +42,14 @@ const CallAlert = ({ senderName, onAccept, onReject }) => {
                 </div>
             </div>
             <div className="flex gap-2 justify-end">
-                <button 
+                <button
                     onClick={onReject}
                     className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-md flex items-center gap-2"
                 >
                     <PhoneOff size={16} />
                     Reject
                 </button>
-                <button 
+                <button
                     onClick={onAccept}
                     className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-md flex items-center gap-2"
                 >
@@ -71,7 +71,7 @@ const MediaControls = ({ isAudioEnabled, isVideoEnabled, onToggleAudio, onToggle
             >
                 End Call
             </button>
-            
+
             <button
                 onClick={onToggleAudio}
                 className={`p-4 rounded-full ${isAudioEnabled ? 'bg-green-500' : 'bg-red-500'} hover:opacity-90`}
@@ -117,7 +117,7 @@ const SocketProvider = ({ children }) => {
 
     // Initialize socket and peer connection
     const socket = useMemo(() => io(URL), []);
-    const pc = useMemo(() => new RTCPeerConnection(ICE_SERVERS), []);
+    var pc = useMemo(() => new RTCPeerConnection(ICE_SERVERS), []);
 
     // Handlers
     const handleUserName = useCallback((e) => {
@@ -126,121 +126,18 @@ const SocketProvider = ({ children }) => {
         localStorage.setItem('user', value);
     }, []);
 
-    const setupLocalStream = useCallback(async (stream) => {
-        if (!localVideoRef.current) return;
-        
-        localVideoRef.current.srcObject = stream;
-        localVideoRef.current.muted = true; // Mute local video to prevent echo
-        
-        try {
-            await localVideoRef.current.play();
-            console.log('Local video playing');
-        } catch (error) {
-            console.error("Failed to play local video:", error);
+    const OnTrackFunction = (event) => {
+        console.log("OnTrackFunction event:", event)
+        if (!remoteVideoRef.current) {
+            console.log("remoteVideoRef is undefine while onTrackFunction")
+            return;
         }
-    }, []);
-
-    const processIceCandidates = useCallback(async () => {
-        if (pc.remoteDescription === null) return;
-        
-        while (iceCandidatesQueue.current.length > 0) {
-            const candidate = iceCandidatesQueue.current.shift();
-            try {
-                await pc.addIceCandidate(candidate);
-                console.log('Processed queued ICE candidate');
-            } catch (error) {
-                console.error("Error adding queued ICE candidate:", error);
-            }
+        remoteVideoRef.current.srcObject = event.streams[0];
+        remoteVideoRef.current.onloadedmetadata = () => {
+            remoteVideoRef.current?.play();
+            console.log("Remote ref")
         }
-    }, [pc]);
-
-    const setupPeerConnection = useCallback(() => {
-        // Reset any existing handlers
-        pc.ontrack = null;
-        pc.onicecandidate = null;
-        pc.onnegotiationneeded = null;
-
-        // Set up track handler
-        pc.ontrack = (event) => {
-            console.log('Track received:', event.track.kind);
-            
-            if (!remoteVideoRef.current) {
-                console.error('Remote video element not available');
-                return;
-            }
-
-            // Create a new MediaStream if we don't have one
-            if (!remoteMediaStream.current) {
-                remoteMediaStream.current = new MediaStream();
-                remoteVideoRef.current.srcObject = remoteMediaStream.current;
-            }
-
-            // Add the track to our media stream
-            remoteMediaStream.current.addTrack(event.track);
-            
-            // Store track references
-            if (event.track.kind === 'video') {
-                remoteVideoTrack.current = event.track;
-            } else if (event.track.kind === 'audio') {
-                remoteAudioTrack.current = event.track;
-            }
-
-            // Play the video when we get a video track
-            if (event.track.kind === 'video') {
-                const playVideo = async () => {
-                    try {
-                        remoteVideoRef.current.autoplay = true;
-                        remoteVideoRef.current.playsInline = true;
-                        await remoteVideoRef.current.play();
-                        console.log('Remote video playing');
-                    } catch (err) {
-                        console.error('Failed to play remote video:', err);
-                    }
-                };
-                playVideo();
-            }
-        };
-
-        // Log connection states
-        pc.onconnectionstatechange = () => {
-            console.log('Connection state:', pc.connectionState);
-            if (pc.connectionState === 'connected') {
-                console.log('Peer connection established');
-            }
-        };
-
-        pc.oniceconnectionstatechange = () => {
-            console.log('ICE connection state:', pc.iceConnectionState);
-        };
-
-        pc.onsignalingstatechange = () => {
-            console.log('Signaling state:', pc.signalingState);
-        };
-
-        return pc;
-    }, [pc]);
-
-    const getCamAndPlay = useCallback(async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            });
-            
-            localMediaStream.current = stream;
-            const [audioTrack] = stream.getAudioTracks();
-            const [videoTrack] = stream.getVideoTracks();
-            
-            localVideoTrack.current = videoTrack;
-            localAudioTrack.current = audioTrack;
-            
-            await setupLocalStream(stream);
-        } catch (error) {
-            console.error("Failed to get media devices:", error);
-            setError("Failed to access camera and microphone");
-        }
-    }, [setupLocalStream]);
-
+    }
     const toggleVideo = useCallback(async () => {
         try {
             if (localVideoTrack.current) {
@@ -273,214 +170,270 @@ const SocketProvider = ({ children }) => {
         }
     }, [socket]);
 
-    const cleanup = useCallback(() => {
-        if (localMediaStream.current) {
-            localMediaStream.current.getTracks().forEach(track => track.stop());
-            localMediaStream.current = null;
-        }
 
-        if (remoteMediaStream.current) {
-            remoteMediaStream.current.getTracks().forEach(track => track.stop());
-            remoteMediaStream.current = null;
-        }
 
-        [remoteVideoRef, localVideoRef].forEach(ref => {
-            if (ref.current) {
-                ref.current.srcObject = null;
-            }
+    const getCamAndPlay = useCallback(async () => {
+        const stream = await window.navigator.mediaDevices.getUserMedia({
+            video: {
+                width: {
+                    min: 1280,
+                    ideal: 1920,
+                    max: 2560,
+                },
+                height: {
+                    min: 720,
+                    ideal: 1080,
+                    max: 1440
+                },
+                facingMode: 'user'
+            },
+            audio: true
         });
-
-        [localAudioTrack, localVideoTrack, remoteAudioTrack, remoteVideoTrack].forEach(ref => {
-            ref.current = null;
-        });
-
-        if (handTrackerRef.current) {
-            handTrackerRef.current.close();
-            handTrackerRef.current = null;
+        localMediaStream.current = stream;
+        const audioTrack = stream.getAudioTracks()[0];
+        const videoTrack = stream.getVideoTracks()[0];
+        // setLocalAudioTrack(audioTrack);
+        // setLocalVideoTrack(videoTrack);
+        localVideoTrack.current = videoTrack;
+        localAudioTrack.current = audioTrack;
+        if (!localVideoRef.current) {
+            // console.log("localVideoRef absent")
+            return;
         }
+        // console.log("localVideoRef: ", localVideoRef.current, videoTrack)
+        localVideoRef.current.srcObject = new MediaStream([videoTrack]);
+        localVideoRef.current.play();
+    }, [localVideoRef, localVideoRef.current])
 
-        iceCandidatesQueue.current = [];
-        
-        if (pc) {
-            pc.close();
-        }
+    var cancelCall;
 
-        setIsVideoEnabled(true);
-        setIsAudioEnabled(true);
-    }, [pc]);
-
-    const handleCall = useCallback(async (receiverName) => {
-        setRemoteUserName(receiverName);
-        socket.emit("call", receiverName);
-    }, [socket]);
-
-    const handleCallResponse = useCallback(async (senderName, accept) => {
-        if (accept) {
-            setRemoteUserName(senderName);
-            await getCamAndPlay();
-            socket.emit('answerCall', senderName);
-        } else {
-            setUserName(null);
-            socket.emit('rejectCall', senderName);
-        }
-    }, [getCamAndPlay, socket]);
-
-    useEffect(() => {
-        if (userName && socket) socket.emit('addUser', userName);
-    }, [userName, socket]);
-
-    // Socket event handlers
-    useEffect(() => {
-        if (!userName || !socket) return;
-
+    const connectUser = useCallback(() => {
+        socket.emit('addUser', userName)
+    }, [userName]);
+    var timeoutThread;
+    const initSockets = useCallback(() => {
         socket.on('connect', () => {
-            console.log('Connected to socket server');
+            connectUser();
         });
-
         socket.on("rejectCall", (canceledBy) => {
             cleanup();
             setRemoteUserName(null);
-            setNotify(false);
-            setError(`Call rejected by ${canceledBy}`);
-            setTimeout(() => setError(null), 3000);
-        });
-
+            cancelCall = canceledBy;
+        })
         socket.on("end", () => {
-            cleanup();
-            setNotify(false);
-            setError('Call ended');
-            setTimeout(() => setError(null), 3000);
-        });
+            console.log("other user has left!")
+            location.reload();
+            if (localAudioTrack.current) {
+                localAudioTrack.current.stop();
+                localAudioTrack.current = null;
+            }
+            if (localVideoTrack.current) {
+                localVideoTrack.current.stop();
+                localVideoTrack.current = null;
+            }
 
+            if (pc) {
+                // pc.close();
+                pc = new RTCPeerConnection(iceServers);
+            }
+
+            // Clear remote tracks
+            if (remoteMediaStream.current) {
+                remoteMediaStream.current.getTracks().forEach(track => track.stop());
+            }
+
+            // Reset remote and local video element
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = null;
+                remoteMediaStream.current = null;
+            }
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = null;
+            }
+
+        })
         socket.on("call", ({ senderName }) => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            
+            console.log(`call from ${senderName}`);
+            if(timeoutRef.current) clearTimeout(timeoutRef.current);
             if (!lobby) {
                 setSenderName(senderName);
                 setNotify(true);
-                
                 timeoutRef.current = setTimeout(() => {
                     setNotify(false);
                     setSenderName(null);
-                    socket.emit('rejectCall', senderName);
+                    socket.emit('rejectCall',senderName);
                 }, 30000);
             }
         });
 
-        socket.on('send-offer', async ({ roomId }) => {
-            try {
-                await getCamAndPlay();
-                
-                // Set up peer connection before creating offer
-                setupPeerConnection();
-                
-                if (localMediaStream.current) {
-                    localMediaStream.current.getTracks().forEach(track => {
-                        console.log('Adding local track to peer connection:', track.kind);
-                        pc.addTrack(track, localMediaStream.current);
-                    });
-                }
 
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                socket.emit("offer", { sdp: offer, roomId });
-                
-                pc.onicecandidate = (e) => {
-                    if (e.candidate) {
-                        socket.emit("add_ice_candidate", {
-                            candidate: e.candidate,
-                            roomId,
-                            type: "sender",
-                        });
-                    }
-                };
-            } catch (error) {
-                console.error("Error creating/sending offer:", error);
-                setError("Failed to establish connection");
+        socket.on('send-offer', async ({ roomId }) => {
+            await getCamAndPlay();
+            console.log("sending offer", localVideoTrack.current, localAudioTrack.current);
+
+            pc.ontrack = OnTrackFunction;
+            pc.onconnectionstatechange = (event) => {
+                console.log("Connection state change:", event?.target?.connectionState);
+            };
+
+            if (localVideoTrack.current) {
+                console.error("added tack");
+                console.log(localVideoTrack.current)
+                //@ts-ignore
+                pc.addTrack(localVideoTrack.current, localMediaStream.current)
+            }
+            if (localAudioTrack.current) {
+                console.error("added tack");
+                console.log(localAudioTrack.current)
+                //@ts-ignore
+                pc.addTrack(localAudioTrack.current, localMediaStream.current)
+            }
+            const offer = await pc.createOffer();
+            socket.emit("offer", { sdp: offer, roomId });
+            pc.setLocalDescription(offer);
+            pc.onicecandidate = async (e) => {
+                if (!e.candidate) return;
+                console.log("receiving ice candidate locally", e.candidate);
+                if (e.candidate) {
+                    console.log("ready to emit", socket)
+                    socket.emit("add_ice_candidate", {
+                        candidate: e.candidate,
+                        roomId,
+                        type: "sender",
+                    })
+                }
             }
         });
 
         socket.on("offer", async ({ roomId, sdp: remoteSdp }) => {
-            try {
-                await getCamAndPlay();
-                
-                // Set up peer connection before handling offer
-                setupPeerConnection();
-                
-                await pc.setRemoteDescription(remoteSdp);
-                await processIceCandidates();
-                
-                if (localMediaStream.current) {
-                    localMediaStream.current.getTracks().forEach(track => {
-                        console.log('Adding local track to peer connection:', track.kind);
-                        pc.addTrack(track, localMediaStream.current);
-                    });
+            console.log("received offer", remoteSdp);
+            console.log("local Track:", localVideoTrack.current, localMediaStream.current)
+            pc.ontrack = OnTrackFunction;
+            pc.setRemoteDescription(remoteSdp)
+            if (localAudioTrack.current && localMediaStream.current)
+                pc.addTrack(localAudioTrack.current, localMediaStream.current);
+            if (localVideoTrack.current && localMediaStream.current)
+                pc.addTrack(localVideoTrack.current, localMediaStream.current);
+            const sdp = await pc.createAnswer();
+            socket.emit("answer", {
+                roomId,
+                sdp: sdp
+            });
+            //@ts-ignore
+            const stream = new MediaStream();
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = stream;
+            }
+
+            remoteMediaStream.current = stream;
+            // trickle ice 
+            console.log("pc:", pc);
+            pc.setLocalDescription(sdp)
+
+            pc.onicecandidate = async (e) => {
+                if (!e.candidate) {
+                    return;
                 }
-
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                
-                socket.emit("answer", { roomId, sdp: answer });
-
-                pc.onicecandidate = (e) => {
-                    if (e.candidate) {
-                        socket.emit("add_ice_candidate", {
-                            candidate: e.candidate,
-                            type: "receiver",
-                            roomId
-                        });
-                    }
-                };
-            } catch (error) {
-                console.error("Error handling offer:", error);
-                setError("Failed to connect to peer");
+                console.log("local ice candidate on receiving seide");
+                if (e.candidate) {
+                    socket.emit("add_ice_candidate", {
+                        candidate: e.candidate,
+                        type: "receiver",
+                        roomId
+                    })
+                }
             }
-        });
 
-        socket.on("answer", async ({ sdp: remoteSdp }) => {
-            try {
-                await pc.setRemoteDescription(remoteSdp);
-                await processIceCandidates();
-                setLobby(false);
-            } catch (error) {
-                console.error("Error handling answer:", error);
-                setError("Failed to establish connection");
-            }
-        });
 
-        socket.on("add_ice_candidate", async ({ candidate }) => {
-            try {
-                if (pc.remoteDescription) {
-                    await pc.addIceCandidate(candidate);
-                    console.log('Added ICE candidate');
+            setTimeout(() => {
+                const track1 = pc.getTransceivers()[0].receiver.track
+                const track2 = pc.getTransceivers()[1].receiver.track
+                console.log(track1);
+                if (track1.kind === "video") {
+                    remoteAudioTrack.current = track2;
+                    remoteVideoTrack.current = track1;
                 } else {
-                    console.log('Queueing ICE candidate');
-                    iceCandidatesQueue.current.push(candidate);
+                    remoteAudioTrack.current = track1;
+                    remoteVideoTrack.current = track2;
                 }
-            } catch (error) {
-                console.error("Error handling ICE candidate:", error);
-            }
+                //@ts-ignore
+                remoteVideoRef.current.srcObject.addTrack(track1)
+                //@ts-ignore
+                remoteVideoRef.current.srcObject.addTrack(track2)
+                //@ts-ignore
+                remoteVideoRef.current.play();
+                console.log("joiner remoteVideoRef.current:", remoteVideoRef.current, remoteVideoRef.current?.srcObject)
+            }, 1000)
         });
 
-        socket.on('mediaStateChange', ({ type, enabled }) => {
-            if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
-                const tracks = remoteVideoRef.current.srcObject.getTracks();
-                tracks.forEach(track => {
-                    if ((type === 'video' && track.kind === 'video') ||
-                        (type === 'audio' && track.kind === 'audio')) {
-                        track.enabled = enabled;
+        socket.on("answer", ({ sdp: remoteSdp }) => {
+            console.log("answer recieved: ", remoteSdp)
+            setLobby(false);
+
+            pc.setRemoteDescription(remoteSdp).then(() => {
+                console.log("creator remote description set");
+            });
+            console.log("loop closed");
+            setTimeout(() => {
+                const track1 = pc.getTransceivers()[0].receiver.track
+                const track2 = pc.getTransceivers()[1].receiver.track
+                console.log(track1);
+                if (track1.kind === "video") {
+                    remoteAudioTrack.current = track2;
+                    remoteVideoTrack.current = track1;
+                } else {
+                    remoteAudioTrack.current = track1;
+                    remoteVideoTrack.current = track2;
+                }
+
+                if (track1 && track2) {
+                    console.log("creator side:", track1, track2)
+                    // Create a new MediaStream with the tracks
+                    const stream = new MediaStream([track1, track2]);
+
+                    // Assign the stream to the srcObject of the remote video element
+                    if (remoteVideoRef.current) {
+                        remoteVideoRef.current.srcObject = stream;
+                        remoteVideoRef.current.play().catch(error => console.error("Play error:", error));
                     }
-                });
-            }
-        });
+                }
+                console.log("creator remoteVideoRef:", remoteVideoRef.current, remoteVideoRef.current?.srcObject)
+            }, 1000)
+        })
 
-        return () => {
-            socket.off();
-            cleanup();
-            iceCandidatesQueue.current = [];
-        };
-    }, [socket, cleanup, getCamAndPlay, pc, processIceCandidates, setupPeerConnection, lobby]);
+        socket.on("lobby", () => {
+            setLobby(true);
+        })
 
+        socket.on("add_ice_candidate", ({ candidate, type }) => {
+            console.log("add ice candidate from remote");
+            console.log({ candidate, type });
+            pc?.addIceCandidate(candidate);
+        })
+
+    }, []);
+
+    const callUser = async (receiverName) => {
+        var lobby = false;
+        console.log("call user:", receiverName, lobby, cancelCall, socket)
+        setRemoteUserName(receiverName);
+        socket.emit('call',receiverName)
+    }
+    const handleAcceptCall = async (senderName) => {
+        setRemoteUserName(senderName);
+        await getCamAndPlay();
+        console.log("Call Accepted")
+        socket.emit('answerCall', senderName);
+    }
+    const handleRejectCall = async (senderName) => {
+        setUserName(null);
+        console.log("Reject Call")
+        socket.emit('rejectCall', senderName);
+    }
+
+    useEffect(() => {
+        initSockets();
+    }, []);
     const navigate = useNavigate();
 
     const contextValue = {
@@ -490,7 +443,7 @@ const SocketProvider = ({ children }) => {
         localMediaStream,
         getCamAndPlay,
         pc,
-        callUser: handleCall,
+        callUser,
         remoteVideoRef,
         localVideoRef,
         remoteUserName,
@@ -506,35 +459,34 @@ const SocketProvider = ({ children }) => {
         error,
         setError,
         notify,
-        senderName,
-        handleCallResponse
+        senderName
     };
 
     return (
         <SocketContext.Provider value={contextValue}>
             <Notification isVisible={notify}>
-                <CallAlert 
+                <CallAlert
                     senderName={senderName}
                     onAccept={() => {
                         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                        handleCallResponse(senderName, true);
+                        handleAcceptCall(senderName);
                         setNotify(false);
                         navigate('/call');
                     }}
                     onReject={() => {
                         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                        handleCallResponse(senderName, false);
+                        handleRejectCall(senderName);
                         setNotify(false);
                     }}
                 />
             </Notification>
-            
+
             <Notification isVisible={error !== null}>
                 <div className="text-red-400">
                     {error}
                 </div>
             </Notification>
-            
+
             {children}
         </SocketContext.Provider>
     );
