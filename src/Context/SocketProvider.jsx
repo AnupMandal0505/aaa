@@ -5,7 +5,7 @@ import Notification from '../components/Notification';
 const SocketContext = createContext(null);
 
 
-const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:80";
+const URL = import.meta.env.VITE_BACKEND_URL || "https://one-to-one-webrtc-latest.onrender.com/" || "http://localhost:80";
 
 const SocketProvider = ({ children }) => {
     const iceServers = {
