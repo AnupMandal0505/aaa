@@ -99,9 +99,9 @@ export const initializeHandTracking = async ({
 
         const ws = await loadWS();
         ws.onmessage = async (res)=>{
-            console.log('res:',res);
-            const predicted = null;
+            var predicted = res.data;
             if (predicted) {
+                predicted = (res.data).split('"')[1];
                 handlePrediction({
                     predicted,
                     prevCharacterRef,
@@ -131,7 +131,6 @@ export const initializeHandTracking = async ({
         });
 
         hands.onResults(async (results) => {
-            console.log("results", results)
             const canvas = canvasRef.current;
             const video = videoRef.current;
 
@@ -147,7 +146,9 @@ export const initializeHandTracking = async ({
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+            // console.log('results.multiHandLandmarks && results.multiHandedness', results.multiHandLandmarks && results.multiHandedness)
             if (results.multiHandLandmarks && results.multiHandedness) {
+                // console.log('ws.readyState===WebSocket.OPEN && results.multiHandLandmarks.length > 0 && results.multiHandedness.length>0',ws.readyState===WebSocket.OPEN && results.multiHandLandmarks.length > 0 && results.multiHandedness.length>0)
                 if(ws.readyState===WebSocket.OPEN && results.multiHandLandmarks.length > 0 && results.multiHandedness.length>0)
                 {
                     ws.send(JSON.stringify(results))

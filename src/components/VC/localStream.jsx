@@ -6,6 +6,7 @@ export const toggleVideo = (localMeadiaStream, setIsVideoEnabled) =>{
         if(videoTrack)
         {
             videoTrack.enabled = ! videoTrack.enabled;
+            console.log(videoTrack.enabled, "videoTrack.enabled")
             setIsVideoEnabled(videoTrack.enabled);
         }
     }
@@ -19,6 +20,7 @@ export const toggleAudio = (localMeadiaStream, setIsAudioEnabled) =>{
         if(audioTrack)
         {
             audioTrack.enabled = ! audioTrack.enabled;
+            console.log(audioTrack.enabled, "audioTrack.enabled")
             setIsAudioEnabled(audioTrack.enabled);
         }
     }
