@@ -79,13 +79,21 @@ const SocketProvider = ({ children }) => {
     var pc = useMemo(() => new RTCPeerConnection(iceServers), []);
     var cancelCall;
 
-    const connectUser = useCallback(() => {
-        socket.emit('addUser', userName)
-    }, [userName]);
+    // const connectUser = useCallback(() => {
+    //     if(userName)
+    //         socket.emit('addUser', userName)
+    // }, [userName]);
+    useEffect(()=>{
+        console.log(userName, socket)
+        if(userName && socket ) {
+            socket.emit('addUser', userName);
+            console.log('HEHE')
+        }
+    },[userName,socket])
     var timeoutThread;
     const initSockets = useCallback(() => {
         socket.on('connect', () => {
-            connectUser();
+            // connectUser();
         });
         socket.on("rejectCall", (canceledBy) => {
             setRemoteUserName(null);
@@ -318,7 +326,7 @@ const SocketProvider = ({ children }) => {
 
     return (
         //@ts-ignore
-        <SocketContext.Provider value={{ socket, localAudioTrack, localVideoTrack, getCamAndPlay, pc, callUser, remoteVideoRef, localVideoRef, remoteUserName, handleUserName }}>
+        <SocketContext.Provider value={{ socket, localAudioTrack, localVideoTrack, localMediaStream, getCamAndPlay, pc, callUser, remoteVideoRef, localVideoRef, remoteUserName, handleUserName, setUserName }}>
             <>
                 {notify && <Notification>
                     <div>
