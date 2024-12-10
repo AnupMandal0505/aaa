@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Notification, CallAlert} from './VCNotification';
 
 // Context Setup
 const SocketContext = createContext(null);
@@ -14,79 +14,6 @@ const ICE_SERVERS = {
         { urls: "stun:stun.services.mozilla.com" },
         { urls: "stun:stun.l.google.com:19302" },
     ]
-};
-
-// Notification Components
-const Notification = ({ children, isVisible }) => {
-    if (!isVisible) return null;
-
-    return (
-        <div className="fixed top-4 right-4 z-50 animate-in fade-in duration-300">
-            <div className="bg-gray-800 text-white rounded-lg shadow-lg p-4 min-w-[300px]">
-                {children}
-            </div>
-        </div>
-    );
-};
-
-const CallAlert = ({ senderName, onAccept, onReject }) => {
-    return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <Phone size={20} />
-                </div>
-                <div>
-                    <h3 className="font-semibold">Incoming Call</h3>
-                    <p className="text-sm text-gray-300">from {senderName}</p>
-                </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-                <button
-                    onClick={onReject}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-md flex items-center gap-2"
-                >
-                    <PhoneOff size={16} />
-                    Reject
-                </button>
-                <button
-                    onClick={onAccept}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-md flex items-center gap-2"
-                >
-                    <Phone size={16} />
-                    Accept
-                </button>
-            </div>
-        </div>
-    );
-};
-
-// Media Controls Component
-const MediaControls = ({ isAudioEnabled, isVideoEnabled, onToggleAudio, onToggleVideo, onEndCall }) => {
-    return (
-        <div className="flex items-center gap-4">
-            <button
-                onClick={onEndCall}
-                className="px-6 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600"
-            >
-                End Call
-            </button>
-
-            <button
-                onClick={onToggleAudio}
-                className={`p-4 rounded-full ${isAudioEnabled ? 'bg-green-500' : 'bg-red-500'} hover:opacity-90`}
-            >
-                {isAudioEnabled ? <Mic size={24} /> : <MicOff size={24} />}
-            </button>
-
-            <button
-                onClick={onToggleVideo}
-                className={`p-4 rounded-full ${isVideoEnabled ? 'bg-green-500' : 'bg-red-500'} hover:opacity-90`}
-            >
-                {isVideoEnabled ? <Video size={24} /> : <VideoOff size={24} />}
-            </button>
-        </div>
-    );
 };
 
 // Main Provider Component
@@ -113,7 +40,6 @@ const SocketProvider = ({ children }) => {
     const localVideoRef = useRef();
     const handTrackerRef = useRef(null);
     const timeoutRef = useRef(null);
-    const iceCandidatesQueue = useRef([]);
 
     // Initialize socket and peer connection
     const socket = useMemo(() => io(URL), []);
@@ -363,7 +289,7 @@ const SocketProvider = ({ children }) => {
                 //@ts-ignore
                 remoteVideoRef.current.play();
                 console.log("joiner remoteVideoRef.current:", remoteVideoRef.current, remoteVideoRef.current?.srcObject)
-            }, 1000)
+            }, 3000)
         });
 
         socket.on("answer", ({ sdp: remoteSdp }) => {

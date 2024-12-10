@@ -187,6 +187,14 @@ const CallDashboard = () => {
                         {/* Control Buttons */}
                         <div className="flex items-center gap-3 p-2 bg-black/40 backdrop-blur-md rounded-2xl">
                             <button
+                                onClick={() => console.log('remoteVideoRef',remoteVideoRef.current.srcObject)}
+                                className="px-6 py-3 bg-red-500/90 hover:bg-red-600 text-white rounded-xl font-medium transition-colors"
+                            >
+                                Reset Remote Video Ref
+                            </button>
+
+                            <div className="w-px h-8 bg-gray-700" /> {/* Divider */}
+                            <button
                                 onClick={() => window.location.replace('/')}
                                 className="px-6 py-3 bg-red-500/90 hover:bg-red-600 text-white rounded-xl font-medium transition-colors"
                             >
