@@ -7,12 +7,23 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
   const [videoQueue, setVideoQueue] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [failedVideos, setFailedVideos] = useState(new Set());
+  const [imageTimer, setImageTimer] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [nextContent, setNextContent] = useState(null);
 
   useEffect(() => {
     if (words && words.length > 0) {
       generateVideoQueue();
     }
   }, [words]);
+
+  useEffect(() => {
+    return () => {
+      if (imageTimer) {
+        clearTimeout(imageTimer);
+      }
+    };
+  }, [imageTimer]);
 
   const generateVideoQueue = () => {
     setIsLoading(true);
@@ -30,6 +41,21 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
     setIsLoading(false);
   };
 
+  const handleTransition = (nextItem) => {
+    setIsTransitioning(true);
+    setNextContent(nextItem);
+    
+    setTimeout(() => {
+      setCurrentVideo(nextItem);
+      setNextContent(null);
+      setIsTransitioning(false);
+      
+      if (nextItem && nextItem.type === 'letter') {
+        startImageTimer();
+      }
+    }, 300);
+  };
+
   const handleVideoError = async (error) => {
     console.error('Video playback error:', error);
 
@@ -39,7 +65,7 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
 
       const letters = currentItem.original.split('');
       const letterUrls = letters.map(letter => ({
-        url: `https://signwave-sih.s3.ap-south-1.amazonaws.com/output_alphabet/${letter.toLowerCase()}.mp4`,
+        url: `https://signwave-sih.s3.ap-south-1.amazonaws.com/output_alphabet_pics/${letter.toLowerCase()}.jpg`,
         type: 'letter',
         original: letter
       }));
@@ -51,16 +77,28 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
       ];
 
       setVideoQueue(newQueue);
-      setCurrentVideo(newQueue[currentVideoIndex]);
+      handleTransition(newQueue[currentVideoIndex]);
     } else {
       handleVideoEnd();
     }
   };
 
+  const startImageTimer = () => {
+    const timer = setTimeout(() => {
+      handleVideoEnd();
+    }, 2000);
+    setImageTimer(timer);
+  };
+
   const handleVideoEnd = () => {
+    if (imageTimer) {
+      clearTimeout(imageTimer);
+    }
+
     if (currentVideoIndex < videoQueue.length - 1) {
       setCurrentVideoIndex(prev => prev + 1);
-      setCurrentVideo(videoQueue[currentVideoIndex + 1]);
+      const nextItem = videoQueue[currentVideoIndex + 1];
+      handleTransition(nextItem);
     } else {
       setCurrentVideoIndex(0);
       setCurrentVideo('');
@@ -78,12 +116,47 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
       : `Letter: ${currentVideo.original}`;
   };
 
+  const renderContent = (content, isNext = false) => {
+    if (!content) return null;
+
+    const baseClasses = "absolute inset-0 transition-opacity duration-300 ease-in-out";
+    const opacityClasses = isNext 
+      ? (isTransitioning ? "opacity-100" : "opacity-0") 
+      : (isTransitioning ? "opacity-0" : "opacity-100");
+
+    return (
+      <div className={`${baseClasses} ${opacityClasses}`}>
+        {content.type === 'word' ? (
+          <video
+            key={content.url}
+            className="w-full h-full object-contain"
+            autoPlay
+            onEnded={handleVideoEnd}
+            onError={handleVideoError}
+          >
+            <source src={content.url} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          <img
+            key={content.url}
+            src={content.url}
+            alt={`Sign for letter ${content.original}`}
+            className="w-full h-full object-contain"
+            onError={handleVideoEnd}
+            onLoad={() => content === currentVideo && startImageTimer()}
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <Modal open={isOpen} onClose={onClose}>
-      <div className="bg-white rounded-lg shadow-xl transform transition-all w-full max-w-2xl">
-        <div className="p-6">
+      <div className="bg-white rounded-lg shadow-xl transform transition-all w-[80vh] max-w-6xl mx-auto h-[80vh]">
+        <div className="p-6 flex flex-col h-full">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-900">
               ISL Translation
             </h3>
             <button
@@ -97,24 +170,18 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
             </button>
           </div>
 
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+          <div className="relative flex-grow bg-black rounded-lg overflow-hidden">
             {isLoading ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
               </div>
             ) : currentVideo ? (
               <>
-                <video
-                  key={currentVideo.url}
-                  className="w-full h-full"
-                  autoPlay
-                  onEnded={handleVideoEnd}
-                  onError={handleVideoError}
-                >
-                  <source src={currentVideo.url} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-                <div className="absolute bottom-4 left-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-md">
+                <div className="relative w-full h-full">
+                  {renderContent(currentVideo)}
+                  {renderContent(nextContent, true)}
+                </div>
+                <div className="absolute bottom-6 left-6 bg-black bg-opacity-60 text-white px-4 py-2 rounded-md transition-opacity duration-300 text-lg">
                   {getCurrentContent()}
                 </div>
               </>
@@ -125,8 +192,8 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
             )}
           </div>
 
-          <div className="mt-4 flex justify-between items-center">
-            <div className="text-sm text-gray-500">
+          <div className="mt-6 flex justify-between items-center">
+            <div className="text-base text-gray-500">
               {!isLoading && videoQueue.length > 0 &&
                 `Playing ${currentVideoIndex + 1} of ${videoQueue.length}`
               }
@@ -134,7 +201,7 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                className="inline-flex justify-center px-6 py-2.5 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
               >
                 Close
               </button>
