@@ -77,7 +77,7 @@ const handlePrediction = ({
 export const initializeHandTracking = async ({
     setIsLoading,
     canvasRef,
-    videoRef,
+    remoteVideoRef,
     handTrackerRef,
     setError,
     stream,
@@ -98,7 +98,7 @@ export const initializeHandTracking = async ({
         await loadMediaPipeScripts();
 
         const ws = await loadWS();
-        ws.onmessage = async (res)=>{
+        ws.onmessage = async (res) => {
             var predicted = res.data;
             if (predicted) {
                 predicted = (res.data).split('"')[1];
@@ -132,27 +132,30 @@ export const initializeHandTracking = async ({
 
         hands.onResults(async (results) => {
             const canvas = canvasRef.current;
-            const video = videoRef.current;
+            const video = remoteVideoRef.current;
 
-            if (!canvas || !video) return;
+            if (!canvas || !video || video.readyState !== 4) return;
 
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            // Match canvas size to video size
+            if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
 
             ctx.save();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // console.log('results.multiHandLandmarks && results.multiHandedness', results.multiHandLandmarks && results.multiHandedness)
             if (results.multiHandLandmarks && results.multiHandedness) {
-                // console.log('ws.readyState===WebSocket.OPEN && results.multiHandLandmarks.length > 0 && results.multiHandedness.length>0',ws.readyState===WebSocket.OPEN && results.multiHandLandmarks.length > 0 && results.multiHandedness.length>0)
-                if(ws.readyState===WebSocket.OPEN && results.multiHandLandmarks.length > 0 && results.multiHandedness.length>0)
-                {
-                    ws.send(JSON.stringify(results))
+                if (ws.readyState === WebSocket.OPEN && 
+                    results.multiHandLandmarks.length > 0 && 
+                    results.multiHandedness.length > 0) {
+                    ws.send(JSON.stringify(results));
                 }
+
                 let leftHandData = [];
                 let rightHandData = [];
 
@@ -179,40 +182,32 @@ export const initializeHandTracking = async ({
                         rightHandData = handData;
                     }
                 }
-
-                // const predicted = null;
-                // if (predicted) {
-                //     handlePrediction({
-                //         predicted,
-                //         prevCharacterRef,
-                //         consecutiveCountRef,
-                //         requiredCount,
-                //         currentWord,
-                //         setSentence,
-                //         setCurrentWord,
-                //         sentence,
-                //         setPrediction
-                //     });
-                // }
             }
 
             ctx.restore();
         });
 
         handTrackerRef.current = hands;
-        //@ts-ignore
-        const Camera = window.Camera;
-        let camera = null;
-        if (videoRef.current) {
-            camera = new Camera(videoRef.current, {
-              onFrame: async () => {
-                await hands.send({ image: videoRef.current });
-              },
-              width: 640,
-              height: 480,
+
+        // Set up frame processing for WebRTC video
+        const processFrame = async () => {
+            if (remoteVideoRef.current && 
+                remoteVideoRef.current.readyState === 4 && 
+                !remoteVideoRef.current.paused && 
+                !remoteVideoRef.current.ended) {
+                await hands.send({ image: remoteVideoRef.current });
+            }
+            requestAnimationFrame(processFrame);
+        };
+
+        // Start processing frames when video starts playing
+        if (remoteVideoRef.current) {
+            remoteVideoRef.current.addEventListener('playing', () => {
+                console.log('Remote video stream started playing');
+                requestAnimationFrame(processFrame);
             });
-            camera.start();
-          }
+        }
+
         setIsLoading(false);
     } catch (err) {
         console.error('Error initializing:', err);
