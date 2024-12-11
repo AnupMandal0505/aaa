@@ -67,12 +67,13 @@ import Signup from './pages/Signup'
 // index.js
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Service from './pages/Service'
-import SocketProvider from './Context/SocketProvider'
+import {SocketProvider} from './Context/SocketProvider'
 import Navbar from './components/Navbar'
 import Dashbord from './pages/Dashbord'
 import { useState, useContext, createContext } from 'react';
 import ProtectedRoute from './components/Dashboard/ProtectedRoute'
 import VideoCall from './components/ISL/VideoCall'
+import Call from './pages/Call'
 export const StatusContext = createContext();
 
 
@@ -80,6 +81,7 @@ function App({ children }) {
   const [loginStatus, setLoginStatus] = useState(true);
   return (
     <StatusContext.Provider value={{ loginStatus, setLoginStatus }}>
+      <SocketProvider>
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/about' element={<About />} />
@@ -90,12 +92,10 @@ function App({ children }) {
         <Route path='/dash' element={<Dashbord />} />
         <Route path='/calling/:id' element={<VideoCall />} />
         <Route path='/call' element={<>
-          <SocketProvider>
-            <Navbar />
-            <VideoCall />
-          </SocketProvider>
+            <Call />
         </>} />
       </Routes>
+      </SocketProvider>
     </StatusContext.Provider>
   )
 }
