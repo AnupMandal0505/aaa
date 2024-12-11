@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import logo from '../assets/images/logo-w.png'; // Adjust the path based on your file structure
 import { Link } from 'react-router-dom';
 
+import i1 from '../assets/DashImage/avi1.png';
+import i2 from '../assets/DashImage/avi2.png';
+import i3 from '../assets/DashImage/avi3.png';
+import i4 from '../assets/DashImage/avi4.png';
+import './LoggedNavbar.css';
+import { PageContext } from '../App';
 const Navbar = () => {
+    const { page, setPage } = useContext(PageContext);
     const [isOpen, setIsOpen] = useState(false);
     //   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -67,6 +74,8 @@ const Navbar = () => {
                                 />
                             </a>
                         </div>
+
+                        {/* Full Screen..................................................................................... */}
                         <div className="hidden sm:block sm:ml-6">
                             <div className="flex pt-3 space-x-4">
                                 <Link
@@ -106,10 +115,19 @@ const Navbar = () => {
             </div>
 
             <div
-                className={`sm:hidden ${isOpen ? 'block' : 'hidden'}`}
+                className={`${isOpen ? 'block-a' : 'hidden-a'}`}
                 id="mobile-menu"
+
             >
-                <div className="px-2 pt-2 pb-3 space-y-1">
+
+                <div onClick={() => setPage(0)} className='dash-menu-set-a'><img src={i1} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Dashboard</p></div>
+                <div onClick={() => setPage(100)} className='dash-menu-set-a'><img src={i1} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Create Call</p></div>
+                <div onClick={() => setPage(1)} className='dash-menu-set-a'><img src={i2} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Call History</p></div>
+                <div onClick={() => setPage(2)} className='dash-menu-set-a'><img src={i3} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Subscription</p></div>
+                <div onClick={() => setPage(3)} className='dash-menu-set-a'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Payment History</p></div>
+                <div onClick={() => setPage(4)} className='dash-menu-set-a'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Logout</p></div>
+
+                {/*<div className="px-2 pt-2 pb-3 space-y-1">
                     <Link
                         to="/"
                         className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
@@ -140,7 +158,7 @@ const Navbar = () => {
                     >
                         Account
                     </Link>
-                </div>
+                </div> */}
             </div>
         </nav>
     );

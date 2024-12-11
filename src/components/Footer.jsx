@@ -3,19 +3,17 @@ import logo from '../assets/images/logo-w.png'; // Adjust the path based on your
 
 const Footer = () => {
   return (
-    <div style={{marginTop:'100px'}}>
-
-
+    <div>
       <footer className="bg-blue dark:bg-gray-900">
         <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
           <div className="md:flex md:justify-between">
             <div className="mb-6 md:mb-0">
               <a href="#" className="flex items-center">
-              <img
-        src={logo} // Use the imported image path
-        alt="Logo"
-        className="w-24 h-auto" // Tailwind CSS classes for styling
-      />                <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">SignSpeaks</span>
+                <img
+                  src={logo} // Use the imported image path
+                  alt="Logo"
+                  className="w-24 h-auto" // Tailwind CSS classes for styling
+                />                <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">SignSpeaks</span>
               </a>
             </div>
             <div className="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">

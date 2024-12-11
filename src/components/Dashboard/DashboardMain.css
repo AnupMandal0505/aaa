@@ -5,6 +5,7 @@
     height: 100%;
     background: #303031;
     overflow: hidden;
+    overflow-y: scroll;
   }
   .card-row-1{
     display: flex;
@@ -69,7 +70,7 @@
 
   .current-call-list{
     color: rgb(0, 0, 0);
-    padding: 30px 50px;
+    padding: 30px 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -110,4 +111,56 @@
     background-color: #ff3131;
     font-weight:700;
     color: white;
+  }
+  .text-controller{
+    font-size: 20px;
+  }
+
+  @media(max-width:640px){
+    .card-row-1{
+      display: none;
+    }
+    .work-menu{
+      flex-direction: column;
+    }
+    .task-menu{
+      flex: 2;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+      padding: 50px 50px;
+    }
+
+    .text-controller{
+      font-size: 15px;
+    }
+    .res-call-list{
+      display: flex;
+      flex-direction: column;
+      justify-content:center;
+      align-items: center;
+      padding-bottom: 40px;
+      padding-left: 60px;
+    }
+    .current-call-list{
+      width: 100%;
+    }
+    .join-btn{
+      width: 70px;
+      height: 35px;
+      border-radius: 10px;
+      background-color: #00db58;
+      font-weight:700;
+      color: white;
+    }
+    .item-lists{
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0px 0px 10px 2px rgb(199, 199, 199);
+      border-radius: 5px;
+    }
   }
