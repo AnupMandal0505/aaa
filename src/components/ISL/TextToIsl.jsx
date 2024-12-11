@@ -81,10 +81,10 @@ const SpeechToIsl = () => {
 
   return (
     <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
-      <h1 style={{ fontWeight: 'bold' }}>Text to ISL Translator</h1>
-      <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+      <h1 className='heading-translator' style={{ fontWeight: 'bold' }}>Text to ISL Translator</h1>
+      <div className='box-translator' style={{ gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
         {
-          videoPlay ? <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px' }}> <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xJ_V55awyIo?si=kv8_pqH6trV6NKaR" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div> : <textarea className=" border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500" style={{ maxWidth: '40vw', maxHeight: '40vh', minWidth: '40vw', minHeight: '40vh', border: '1px solid #1eb9fc', padding: '10px', fontSize: '20px', fontWeight: '500' }}>{isListening ? textInput + transcript : textInput}</textarea>
+          videoPlay ? <div className='video-play-true' style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue' }}> <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xJ_V55awyIo?si=kv8_pqH6trV6NKaR" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div> : <textarea className=" border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500" style={{ maxWidth: '40vw', maxHeight: '40vh', minWidth: '40vw', minHeight: '40vh', border: '1px solid #1eb9fc', padding: '10px', fontSize: '20px', fontWeight: '500' }}>{isListening ? textInput + transcript : textInput}</textarea>
         }
         <button onClick={() => {
           startStopListening();

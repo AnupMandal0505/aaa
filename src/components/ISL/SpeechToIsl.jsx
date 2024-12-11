@@ -81,10 +81,21 @@ const SpeechToIsl = () => {
 
     return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
-            <h1 style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
-            <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+            <h1 className='heading-translator' style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
+            <div className='box-translator' style={{ gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
                 {
-                    videoPlay ? <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px' }}> <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xJ_V55awyIo?si=kv8_pqH6trV6NKaR" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div> : <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}> {button === "Start Recording" ? <div style={{ width: '100%', height: '100%', textAlign: 'center' }}>Press the button to start speaking....</div> : <div style={{ width: '100%', height: '100%' }}>{isListening ? textInput + transcript : textInput}</div>}</div>
+                    videoPlay ?
+                        <div className='video-play-true' style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue' }}>
+                            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/ND8arYitZl4?si=_-GWLQjHiWML8GGO" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        :
+                        <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
+                            {button === "Start Recording" ?
+                                <div style={{ width: '100%', height: '100%', textAlign: 'center' }}>Press the button to start speaking....</div>
+                                :
+                                <div style={{ width: '100%', height: '100%' }}>{isListening ? textInput + transcript : textInput}</div>
+                            }
+                        </div>
                 }
                 <button onClick={() => {
                     startStopListening();

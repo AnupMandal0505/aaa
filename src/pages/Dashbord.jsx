@@ -15,6 +15,7 @@ import DashboardMain from '../components/Dashboard/DashboardMain';
 import SpeechToIsl from '../components/ISL/SpeechToIsl';
 import TextToIsl from '../components/ISL/TextToIsl';
 import IslToSpeech from '../components/ISL/IslToSpeech';
+import IslToText from '../components/ISL/IslToText';
 
 export const PageContext = createContext();
 
@@ -56,7 +57,8 @@ const Dashbord = () => {
                                 page === 3 ? <PaymentHistory /> :
                                     page === 11 ? <SpeechToIsl /> :
                                         page === 12 ? <TextToIsl /> :
-                                            page === 13 ? <IslToSpeech /> : <IslToSpeech />
+                                            page === 13 ? <IslToSpeech /> :
+                                                page === 14 ? <IslToText /> : <IslToText />
                 }
             </div>
         </div>

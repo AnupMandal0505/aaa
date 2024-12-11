@@ -1,8 +1,25 @@
 import './SpeechToIsl.css';
 import "./VideoUploader.css";
+import "./SpeechUI.css";
 import { useState, useEffect, useRef } from "react";
 
 const IslToSpeech = () => {
+
+    /* This is Sorce Video......*/
+    const [videoSrc, setVideoSrc] = useState(null);
+
+
+
+
+    const audioRef = useRef(null);
+
+
+
+    const [audioSrc, setAudioSrc] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState("");
     const recognitionRef = useRef(null);
@@ -80,40 +97,45 @@ const IslToSpeech = () => {
 
 
     /* Video.................... */
-    const [videoFile, setVideoFile] = useState(null);
-    const [error, setError] = useState("");
-
     const handleFileChange = (event) => {
         const file = event.target.files[0];
-        validateAndSetFile(file);
+        if (file && file.type.startsWith("video/")) {
+            setVideoSrc(URL.createObjectURL(file));
+        } else {
+            alert("Please upload a valid video file.");
+        }
     };
 
-    const handleDrop = (event) => {
-        event.preventDefault();
-        const file = event.dataTransfer.files[0];
-        validateAndSetFile(file);
+
+    /* Audio..................... */
+
+    const togglePlayPause = () => {
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
     };
 
-    const validateAndSetFile = (file) => {
-        const validTypes = ["video/mp4", "video/avi", "video/mkv"];
-        if (!file) {
-            setError("No file selected.");
-            return;
-        }
-        if (!validTypes.includes(file.type)) {
-            setError("Unsupported file type. Please upload a valid video.");
-            return;
-        }
-        if (file.size > 50 * 1024 * 1024) {
-            setError("File size exceeds 50MB limit.");
-            return;
-        }
-        setError("");
-        setVideoFile(file);
+    const handleTimeUpdate = () => {
+        setCurrentTime(audioRef.current.currentTime);
     };
 
-    const handleDragOver = (event) => {
-        event.preventDefault();
+    const handleLoadedMetadata = () => {
+        setDuration(audioRef.current.duration);
+    };
+
+    const handleProgressChange = (event) => {
+        const newTime = (event.target.value / 100) * duration;
+        audioRef.current.currentTime = newTime;
+        setCurrentTime(newTime);
+    };
+
+    const formatTime = (time) => {
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60).toString().padStart(2, "0");
+        return `${minutes}:${seconds}`;
     };
 
     return (
@@ -121,32 +143,75 @@ const IslToSpeech = () => {
             <h1 style={{ fontWeight: 'bold' }}>ISL to Speech Translator</h1>
             <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
                 {
-                    videoPlay ? <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px' }}> <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xJ_V55awyIo?si=kv8_pqH6trV6NKaR" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div> : <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
-                        <div className='profile-gallery'>
-                            <label htmlFor='add-gallery-img'>
-                                <div className='add-in-gallery'>
-                                    <input type='file' id="add-gallery-img" className='inp-video-field' />
-                                    <h4>Choose your ISL video</h4>
+                    videoPlay ?
+                        <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px' }}>
+
+                            <div className="audio-container">
+                                <audio
+                                    ref={audioRef}
+                                    src={audioSrc}
+                                    onTimeUpdate={handleTimeUpdate}
+                                    onLoadedMetadata={handleLoadedMetadata}
+                                    onEnded={() => setIsPlaying(false)}
+                                />
+                                <div className="audio-controls">
+                                    <span className="time-display">{formatTime(currentTime)}</span>
+                                    <input
+                                        type="range"
+                                        className="progress-bar"
+                                        value={(currentTime / duration) * 100 || 0}
+                                        onChange={handleProgressChange}
+                                    />
+                                    <span className="time-display">{formatTime(duration)}</span>
                                 </div>
-                            </label>
+                                <button
+                                    className="play-button"
+                                    onClick={togglePlayPause}
+                                >
+                                    {isPlaying ? "Pause" : "Play"}
+                                </button>
+                            </div>
+                        </div> : <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
+                            {
+                                videoSrc == null ?
+                                    <div className='profile-gallery'>
+                                        <label htmlFor='add-gallery-img'>
+                                            <div className='add-in-gallery'>
+                                                <input type='file' accept="video/*" id="add-gallery-img" className='inp-video-field' onChange={handleFileChange} />
+                                                <h4>Choose your ISL video</h4>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    :
+                                    <video
+                                        autoPlay
+                                        muted
+                                        loop
+                                        src={videoSrc}
+                                        style={{ width: "100%", height: '100%', border: "2px solid #ccc", borderRadius: "8px" }}
+                                    >
+                                        Your browser does not support the video tag.
+                                    </video>
+                            }
                         </div>
-                    </div>
                 }
                 <button onClick={() => {
                     startStopListening();
-                    if (button === "Back yo Upload") {
+                    if (button === "Back To Upload") {
                         setButton("Convert to Speech");
                         setTranscript("");
                         setTextInput("");
-                        setVideoPlay(true);
-                    } else {
-                        setButton("Back yo Upload");
                         setVideoPlay(false);
+                        setVideoSrc(null)
+                    } else {
+                        setButton("Back To Upload");
+                        setVideoPlay(true);
                     }
                 }} className={button === 'Convert to Speech' ? "start-btn" : "stop-btn"} style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }} >
                     {button}
                 </button>
             </div>
+
         </div>
     );
 };

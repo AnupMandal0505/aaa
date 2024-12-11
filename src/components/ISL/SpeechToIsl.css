@@ -12,3 +12,31 @@
 .stop-btn {
     background-color: rgb(244, 49, 49);
 }
+.heading-translator{
+    font-size: 30px;
+    text-align: center;
+}
+.box-translator{
+    width: 44vw;
+    height: 60vh;
+}
+.video-play-true{
+    width: 40vw;
+    height: 40vh;
+    padding:20px;
+}
+@media(max-width:500px){
+    .heading-translator{
+        font-size: 20px;
+    }
+    .box-translator{
+        width: 78vw;
+        height: 60vh;
+        background-color: #558eff;
+    }
+    .video-play-true{
+        width: 70vw;
+        height: 40vh;
+        padding:5px;
+    }
+}

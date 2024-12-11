@@ -75,7 +75,7 @@ const DashboardMain = () => {
             <h3 className="text-xl font-bold mb-2"> <FontAwesomeIcon icon={faHandsBubbles} /> ISL To  Speech <FontAwesomeIcon icon={faMicrophoneLines} /></h3>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-3">
+          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(14)}>
             <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faHandsBubbles} /> ISL TO Text <FontAwesomeIcon icon={faFilePen} /></h3>
           </div>
           <div className="bg-white shadow-md rounded-lg p-3">
