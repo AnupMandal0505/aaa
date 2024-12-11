@@ -12,14 +12,14 @@ const CallDashboard = () => {
 
     // States
     const [currentWord, setCurrentWord] = useState('');
-    const [sentence, setSentence] = useState('');
+    const [sentence, setSentence] = useState([]);
     const [prediction, setPrediction] = useState('');
     const [isFildOn, setIsFieldOn] = useState(false);
     const [isText, setIsText] = useState(true);
     const [isSpeak, setIsSpeak] = useState(true);
 
     // Constants
-    const requiredCount = 10;
+    const requiredCount = 20;
 
     // Get socket context
     const {

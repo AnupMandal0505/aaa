@@ -57,19 +57,18 @@ const handlePrediction = ({
         consecutiveCountRef.current = 0;
 
         if (predicted === 'space') {
-            if (currentWord.length > 0) {
-                setSentence((prev) => [...prev, currentWord.join('')]);
-                setCurrentWord([]);
-            }
+            // setSentence((prev) =>  [...prev, currentWord]);
+            setCurrentWord((prev)=> prev+" ");
+            // if (currentWord.length > 0) {
+            // }
         } else if (predicted === 'del') {
             console.log('del',predicted,currentWord.length)
-            if (currentWord.length > 0) {
-                setCurrentWord((prev) => prev.slice(0, -1));
-            } else if (sentence.length > 0) {
+            setCurrentWord((prev) => prev.slice(0, -1));
+            if (currentWord.length <= 0) {
                 setSentence((prev) => prev.slice(0, -1));
             }
         } else if (predicted !== 'nothing') {
-            setCurrentWord((prev) => [...prev, predicted]);
+            setCurrentWord((prev) => prev+predicted);
         }
     }
 
