@@ -7,25 +7,29 @@ import i4 from '../assets/DashImage/avi4.png';
 import i5 from '../assets/DashImage/avi5.png';
 import open from '../assets/DashImage/open.png';
 import close from '../assets/DashImage/close.png';
-import { useState } from 'react';
+import { useState, createContext } from 'react';
 import PaymentHistory from '../components/Dashboard/PaymentHistory';
 import BitHistory from '../components/Dashboard/BitHistory';
 import CallHistory from '../components/Dashboard/CallHistory';
 import DashboardMain from '../components/Dashboard/DashboardMain';
+import SpeechToIsl from '../components/ISL/SpeechToIsl';
+import TextToIsl from '../components/ISL/TextToIsl';
+import IslToSpeech from '../components/ISL/IslToSpeech';
 
+export const PageContext = createContext();
 
 const Dashbord = () => {
     //const [activeComponent, setActiveComponent] = useState("DashboardMain");
 
     const handleLogout = () => {
-        localStorage.removeItem("accessToken");
+        localStorage.removeItem("token");
         window.location.href = "/signin";
     };
 
     const [hidding, setHidding] = useState('');
     const [dashMenu, setDashMenu] = useState('dash-menu');
     const [page, setPage] = useState(0);
-    return <>
+    return <PageContext.Provider value={{ setPage }}>
         <LoggedNavbar />
 
 
@@ -39,8 +43,9 @@ const Dashbord = () => {
                 <div onClick={() => setPage(1)} className='dash-menu-set'><img src={i2} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Call History</p></div>
                 <div onClick={() => setPage(2)} className='dash-menu-set'><img src={i3} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Bit History</p></div>
                 <div onClick={() => setPage(3)} className='dash-menu-set'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Payment History</p></div>
-                <div onClick={handleLogout} className='dash-menu-set'><img src={i5} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Logout</p></div>
-                {/* <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded"  > Logout</button> */}
+                {
+                    hidding == '' ? <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded log-out-btn" > Logout</button> : <img onClick={handleLogout} src={i5} width={50} height={50} style={{ maxHeight: '50px' }} />
+                }
             </div>
 
             <div className='dash-cont' style={{ paddingTop: '20px' }}>
@@ -48,11 +53,14 @@ const Dashbord = () => {
                     page === 0 ? <DashboardMain /> :
                         page === 1 ? <CallHistory /> :
                             page === 2 ? <BitHistory /> :
-                                page === 3 ? <PaymentHistory /> : <PaymentHistory />
+                                page === 3 ? <PaymentHistory /> :
+                                    page === 11 ? <SpeechToIsl /> :
+                                        page === 12 ? <TextToIsl /> :
+                                            page === 13 ? <IslToSpeech /> : <IslToSpeech />
                 }
             </div>
         </div>
-    </>;
+    </PageContext.Provider>;
 };
 
 export default Dashbord;

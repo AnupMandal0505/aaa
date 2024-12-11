@@ -1,0 +1,14 @@
+.bbbtttnnn {
+    width: 200px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: green;
+}
+
+.start-btn {
+    background-color: #1eb9fc;
+}
+
+.stop-btn {
+    background-color: rgb(244, 49, 49);
+}

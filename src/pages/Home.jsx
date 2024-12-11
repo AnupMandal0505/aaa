@@ -43,22 +43,6 @@ const Home = () => {
 
 
 
-
-        {/* Call to Action */}
-    <section className="py-16 bg-blue-500 text-white">
-      <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold">Start Using ISL Translator Today!</h2>
-        <p className="mt-4 text-lg">
-          Break barriers and enhance communication with our cutting-edge ISL tools.
-        </p>
-        <button className="mt-6 px-8 py-3 bg-white text-blue-500 font-semibold rounded-lg shadow-lg hover:bg-gray-100">
-          Sign Up Now
-        </button>
-      </div>
-    </section>
-
-
-
         <div className='home-sec-2'>
           <div className='ani-sec-2-1'><h1 className='midea-1' style={{ textAlign: 'center', fontFamily: 'sans-serif', fontWeight: '700' }}>Purpose <span className='midea-2' style={{ fontSize: '60px', color: '#4ff37e' }}>&</span> Introduction</h1></div>
           <div className="ani-under2"></div>

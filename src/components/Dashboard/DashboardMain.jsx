@@ -1,14 +1,16 @@
 import './DashboardMain.css'; // Optional: Add your own styles here
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsBubbles, faFilePen, faCamera, faMicrophoneLines } from '@fortawesome/free-solid-svg-icons';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { PageContext } from '../../pages/Dashbord';
 const DashboardMain = () => {
-
-
+  const navigate = useNavigate();
   const [callHistory, setCallHistory] = useState([]);
   const [error, setError] = useState("");
 
+  const { setPage } = useContext(PageContext);
   const fetchCallHistory = async () => {
     try {
       const token = localStorage.getItem("token"); // Replace with your token retrieval logic
@@ -34,82 +36,42 @@ const DashboardMain = () => {
   }, []);
 
 
+  const caling = (dialer) => {
+    navigate(`/calling/${dialer}`);
+  }
+
 
   return (
     <div className="welcome-card">
 
 
       <div className="card-row-1">
-      <div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
-  <div className="flex items-center">
-    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
-      <i className="fas fa-copy"></i>
-    </div>
-    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
-  </div>
-  <div className="mt-3 text-xl font-semibold">$34,245</div>
-  <div className="mt-1 flex items-center text-xs text-gray-500">
-    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
-    Get more space
-  </div>
-</div> 
-
-<div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
-  <div className="flex items-center">
-    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
-      <i className="fas fa-copy"></i>
-    </div>
-    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
-  </div>
-  <div className="mt-3 text-xl font-semibold">$34,245</div>
-  <div className="mt-1 flex items-center text-xs text-gray-500">
-    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
-    Get more space
-  </div>
-</div>
-
-<div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
-  <div className="flex items-center">
-    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
-      <i className="fas fa-copy"></i>
-    </div>
-    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
-  </div>
-  <div className="mt-3 text-xl font-semibold">$34,245</div>
-  <div className="mt-1 flex items-center text-xs text-gray-500">
-    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
-    Get more space
-  </div>
-</div>
-
-
-<div className="flex flex-col bg-white shadow-lg rounded-lg p-3 w-1/5 mx-2">
-  <div className="flex items-center">
-    <div className={`rounded-full p-2 bg-orange-500 text-white`}>
-      <i className="fas fa-copy"></i>
-    </div>
-    <div className="ml-2 text-gray-600 text-xs font-bold">Used Space</div>
-  </div>
-  <div className="mt-3 text-xl font-semibold">$34,245</div>
-  <div className="mt-1 flex items-center text-xs text-gray-500">
-    <i className="fas fa-exclamation-circle text-red-500 mr-1"></i>
-    Get more space
-  </div>
-</div>
+        <div className="bg-white shadow-md rounded-lg p-4">
+          <h3 className="text-xl font-bold mb-2">Card Title 1</h3>
+          <p className="text-gray-600">This is a simple card description.</p>
+        </div>
+        <div className="bg-white shadow-md rounded-lg p-4">
+          <h3 className="text-xl font-bold mb-2">Card Title 2</h3>
+          <p className="text-gray-600">This is another card description.</p>
+        </div>
+        <div className="bg-white shadow-md rounded-lg p-4">
+          <h3 className="text-xl font-bold mb-2">Card Title 3</h3>
+          <p className="text-gray-600">This is yet another card description.</p>
+        </div>
       </div>
 
 
 
       <div style={{ display: 'flex' }}>
         <div className="task-menu">
-          <div className="bg-white shadow-md rounded-lg p-3">
+          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(11)}>
             <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faMicrophoneLines} /> Speech TO ISL <FontAwesomeIcon icon={faHandsBubbles} />
             </h3>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-3">
+          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(12)}>
             <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faFilePen} /> Text To ISL <FontAwesomeIcon icon={faHandsBubbles} /></h3>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-3">
+          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(13)}>
             <h3 className="text-xl font-bold mb-2"> <FontAwesomeIcon icon={faHandsBubbles} /> ISL To  Speech <FontAwesomeIcon icon={faMicrophoneLines} /></h3>
           </div>
 
@@ -117,7 +79,7 @@ const DashboardMain = () => {
             <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faHandsBubbles} /> ISL TO Text <FontAwesomeIcon icon={faFilePen} /></h3>
           </div>
           <div className="bg-white shadow-md rounded-lg p-3">
-            <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faCamera} /> Make a Video Call</h3>
+            <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faCamera} /> Live Video Translator</h3>
           </div>
         </div>
         <div style={{ flex: '3', paddingRight: '60px' }}>
@@ -135,7 +97,7 @@ const DashboardMain = () => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '20px', paddingRight: '60px' }}>
-                    <button className='join-btn'>join</button>
+                    <button className='join-btn' onClick={() => caling(item.receiver)}>join</button>
                     <button className='edit-btn'>edit</button>
                   </div>
                 </div>

@@ -1,0 +1,155 @@
+import './SpeechToIsl.css';
+import "./VideoUploader.css";
+import { useState, useEffect, useRef } from "react";
+
+const IslToSpeech = () => {
+    const [isListening, setIsListening] = useState(false);
+    const [transcript, setTranscript] = useState("");
+    const recognitionRef = useRef(null);
+    const [textInput, setTextInput] = useState("");
+    const [button, setButton] = useState("Convert to Speech");
+    const [videoPlay, setVideoPlay] = useState(false);
+
+    useEffect(() => {
+        if (!("webkitSpeechRecognition" in window)) {
+            console.error("Speech recognition API not supported.");
+            return;
+        }
+
+        recognitionRef.current = new window.webkitSpeechRecognition();
+        const recognition = recognitionRef.current;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+
+        if ("webkitSpeechGrammarList" in window) {
+            const grammar = "#JSGF V1.0; grammar punctuation; public <punc> = . | , | ? | ! | ; | : ;";
+            const SpeechRecognitionList = new window.webkitSpeechGrammarList();
+            SpeechRecognitionList.addFromString(grammar, 1);
+            recognition.grammars = SpeechRecognitionList;
+        }
+
+        recognition.onresult = (event) => {
+            let interimTranscript = "";
+            for (let i = 0; i < event.results.length; i++) {
+                interimTranscript += event.results[i][0].transcript;
+            }
+            setTranscript(interimTranscript);
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error:", event.error);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        return () => {
+            recognition.stop();
+        };
+    }, []);
+
+    const startListening = () => {
+        if (recognitionRef.current && !isListening) {
+            recognitionRef.current.start();
+            setIsListening(true);
+        }
+    };
+
+    const stopListening = () => {
+        if (recognitionRef.current && isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        }
+    };
+
+    const startStopListening = () => {
+        if (isListening) {
+            stopVoiceInput();
+        } else {
+            startListening();
+        }
+    };
+
+    const stopVoiceInput = () => {
+        setTextInput((prevVal) => prevVal + (transcript ? (prevVal ? " " : "") + transcript : ""));
+        setTranscript("");
+        stopListening();
+    };
+
+
+    /* Video.................... */
+    const [videoFile, setVideoFile] = useState(null);
+    const [error, setError] = useState("");
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        validateAndSetFile(file);
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        const file = event.dataTransfer.files[0];
+        validateAndSetFile(file);
+    };
+
+    const validateAndSetFile = (file) => {
+        const validTypes = ["video/mp4", "video/avi", "video/mkv"];
+        if (!file) {
+            setError("No file selected.");
+            return;
+        }
+        if (!validTypes.includes(file.type)) {
+            setError("Unsupported file type. Please upload a valid video.");
+            return;
+        }
+        if (file.size > 50 * 1024 * 1024) {
+            setError("File size exceeds 50MB limit.");
+            return;
+        }
+        setError("");
+        setVideoFile(file);
+    };
+
+    const handleDragOver = (event) => {
+        event.preventDefault();
+    };
+
+    return (
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
+            <h1 style={{ fontWeight: 'bold' }}>ISL to Speech Translator</h1>
+            <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+                {
+                    videoPlay ? <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px' }}> <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xJ_V55awyIo?si=kv8_pqH6trV6NKaR" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div> : <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
+                        <div className='profile-gallery'>
+                            <label htmlFor='add-gallery-img'>
+                                <div className='add-in-gallery'>
+                                    <input type='file' id="add-gallery-img" className='inp-video-field' />
+                                    <h4>Choose your ISL video</h4>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                }
+                <button onClick={() => {
+                    startStopListening();
+                    if (button === "Back yo Upload") {
+                        setButton("Convert to Speech");
+                        setTranscript("");
+                        setTextInput("");
+                        setVideoPlay(true);
+                    } else {
+                        setButton("Back yo Upload");
+                        setVideoPlay(false);
+                    }
+                }} className={button === 'Convert to Speech' ? "start-btn" : "stop-btn"} style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }} >
+                    {button}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default IslToSpeech;
+

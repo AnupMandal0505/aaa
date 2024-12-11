@@ -35,3 +35,27 @@
 .update-popup:hover{
     background-color: #12bd8a;
 }
+
+.call-history-table{
+    background-color: #0299c3;
+    padding: 10px;
+    height: 100%;
+}
+
+.call-history-table th{
+    background-color: #12bd8a;
+    height: 10vh;
+    border: 1px solid black;
+    text-align: center;
+}
+
+.call-history-table td{
+    height: 5vh;
+    border: 1px solid black;
+    padding-left: 20px;
+}
+
+.scrolling-tbody{
+    overflow-x: scroll;
+    background-color: aliceblue;
+}

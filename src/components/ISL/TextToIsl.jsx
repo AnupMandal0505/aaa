@@ -1,56 +1,109 @@
-import React, { useState } from 'react';
 
-// Simulate ISL conversion (In real use case, this would call an API or database)
-const getISLSign = (text) => {
-  const islDictionary = {
-    hello: 'hello_sign_image_or_video_url',
-    world: 'world_sign_image_or_video_url',
-    // Add more words and their corresponding ISL signs
+import './SpeechToIsl.css';
+
+import { useState, useEffect, useRef } from "react";
+
+const SpeechToIsl = () => {
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = useRef(null);
+  const [textInput, setTextInput] = useState("");
+  const [button, setButton] = useState("Translate to ISL");
+  const [videoPlay, setVideoPlay] = useState(false);
+
+  useEffect(() => {
+    if (!("webkitSpeechRecognition" in window)) {
+      console.error("Speech recognition API not supported.");
+      return;
+    }
+
+    recognitionRef.current = new window.webkitSpeechRecognition();
+    const recognition = recognitionRef.current;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognition.continuous = true;
+
+    if ("webkitSpeechGrammarList" in window) {
+      const grammar = "#JSGF V1.0; grammar punctuation; public <punc> = . | , | ? | ! | ; | : ;";
+      const SpeechRecognitionList = new window.webkitSpeechGrammarList();
+      SpeechRecognitionList.addFromString(grammar, 1);
+      recognition.grammars = SpeechRecognitionList;
+    }
+
+    recognition.onresult = (event) => {
+      let interimTranscript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        interimTranscript += event.results[i][0].transcript;
+      }
+      setTranscript(interimTranscript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    return () => {
+      recognition.stop();
+    };
+  }, []);
+
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
   };
 
-  return islDictionary[text.toLowerCase()] || 'default_sign_image_or_video_url';
-};
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
 
-const TextToISL = () => {
-  const [textInput, setTextInput] = useState('');
-  const [islSign, setIslSign] = useState('');
+  const startStopListening = () => {
+    if (isListening) {
+      stopVoiceInput();
+    } else {
+      startListening();
+    }
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const sign = getISLSign(textInput);
-    setIslSign(sign);
+  const stopVoiceInput = () => {
+    setTextInput((prevVal) => prevVal + (transcript ? (prevVal ? " " : "") + transcript : ""));
+    setTranscript("");
+    stopListening();
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Text to ISL Converter</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
-          className="w-full p-2 border rounded-md"
-          placeholder="Enter text (e.g., hello, world)"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded-md"
-        >
-          Convert to ISL
+    <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
+      <h1 style={{ fontWeight: 'bold' }}>Text to ISL Translator</h1>
+      <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+        {
+          videoPlay ? <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px' }}> <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xJ_V55awyIo?si=kv8_pqH6trV6NKaR" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div> : <textarea className=" border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500" style={{ maxWidth: '40vw', maxHeight: '40vh', minWidth: '40vw', minHeight: '40vh', border: '1px solid #1eb9fc', padding: '10px', fontSize: '20px', fontWeight: '500' }}>{isListening ? textInput + transcript : textInput}</textarea>
+        }
+        <button onClick={() => {
+          startStopListening();
+          if (button === "Translate to ISL") {
+            setButton("Write Something");
+            setTranscript("");
+            setTextInput("");
+            setVideoPlay(true);
+          } else {
+            setButton("Translate to ISL");
+            setVideoPlay(false);
+          }
+        }} className={button === 'Translate to ISL' ? "start-btn" : "stop-btn"} style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }} >
+          {button}
         </button>
-      </form>
-
-      {islSign && (
-        <div className="mt-6 text-center">
-          <h2 className="text-xl font-semibold">ISL Sign:</h2>
-          <img src={islSign} alt="ISL Sign" className="mt-4 max-w-full h-auto" />
-          {/* Alternatively, you could display a video instead of an image */}
-          {/* <video src={islSign} controls className="mt-4" /> */}
-        </div>
-      )}
-    </div>
+      </div>
+    </div >
   );
 };
 
-export default TextToISL;
+export default SpeechToIsl;
+
