@@ -43,6 +43,7 @@ const Dashbord = () => {
                 <div onClick={() => setPage(1)} className='dash-menu-set'><img src={i2} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Call History</p></div>
                 <div onClick={() => setPage(2)} className='dash-menu-set'><img src={i3} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Bit History</p></div>
                 <div onClick={() => setPage(3)} className='dash-menu-set'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Payment History</p></div>
+                <div onClick={() => setPage(12)} className='dash-menu-set'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p className={hidding} style={{ padding: '10px' }}>Text to ISL</p></div>
                 {
                     hidding == '' ? <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded log-out-btn" > Logout</button> : <img onClick={handleLogout} src={i5} width={50} height={50} style={{ maxHeight: '50px' }} />
                 }
