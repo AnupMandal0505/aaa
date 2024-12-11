@@ -62,16 +62,20 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
       setCurrentVideoIndex(prev => prev + 1);
       setCurrentVideo(videoQueue[currentVideoIndex + 1]);
     } else {
-      // Call onComplete before closing
-      // onComplete();
       setCurrentVideoIndex(0);
       setCurrentVideo('');
       setVideoQueue([]);
       setIsLoading(true);
       setFailedVideos(new Set());
-
       onClose();
     }
+  };
+
+  const getCurrentContent = () => {
+    if (!currentVideo) return '';
+    return currentVideo.type === 'word' 
+      ? `Word: ${currentVideo.original}`
+      : `Letter: ${currentVideo.original}`;
   };
 
   return (
@@ -99,16 +103,21 @@ const VideoModal = ({ words, isOpen, onClose, onComplete }) => {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
               </div>
             ) : currentVideo ? (
-              <video
-                key={currentVideo.url}
-                className="w-full h-full"
-                autoPlay
-                onEnded={handleVideoEnd}
-                onError={handleVideoError}
-              >
-                <source src={currentVideo.url} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              <>
+                <video
+                  key={currentVideo.url}
+                  className="w-full h-full"
+                  autoPlay
+                  onEnded={handleVideoEnd}
+                  onError={handleVideoError}
+                >
+                  <source src={currentVideo.url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <div className="absolute bottom-4 left-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-md">
+                  {getCurrentContent()}
+                </div>
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-white">
                 No videos available

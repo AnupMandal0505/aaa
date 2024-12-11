@@ -2,6 +2,7 @@ import './SpeechToIsl.css';
 import { useState, useEffect, useRef } from "react";
 import axios from 'axios';
 import VideoModal from '../../components/VideoModal';
+import useLoadingScreen from '../../hooks/Loading';
 
 const SpeechToIsl = () => {
     const [isListening, setIsListening] = useState(false);
@@ -11,6 +12,8 @@ const SpeechToIsl = () => {
     const [button, setButton] = useState("Start Recording");
     const [wordList, setWordList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const {LoadingScreen, startLoading, stopLoading } = useLoadingScreen();
 
     useEffect(() => {
         if (!("webkitSpeechRecognition" in window)) {
@@ -75,6 +78,7 @@ const SpeechToIsl = () => {
     };
 
     const handleTranslate = async () => {
+      startLoading();
       try {
           const response = await axios.post('http://localhost:9001/isl_text', {
               sentence: textInput.trim()
@@ -83,6 +87,8 @@ const SpeechToIsl = () => {
           setIsModalOpen(true);
       } catch (error) {
           console.error('Error getting word list:', error);
+      } finally{
+        stopLoading();
       }
   };
   
@@ -91,16 +97,8 @@ const SpeechToIsl = () => {
       setTextInput(finalText);
       setTranscript("");
       stopListening();
-  
-      try {
-          const response = await axios.post('http://localhost:9001/isl_text', {
-              sentence: finalText.trim()
-          });
-          setWordList(response.data);
-          setIsModalOpen(true);
-      } catch (error) {
-          console.error('Error getting word list:', error);
-      }
+
+      await handleTranslate();
   };
 
     return (

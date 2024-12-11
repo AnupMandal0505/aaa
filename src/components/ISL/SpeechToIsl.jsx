@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import axios from 'axios';
 import VideoModal from '../../components/VideoModal';
 
+import useLoadingScreen from "../../hooks/Loading";
+
 const SpeechToIsl = () => {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState("");
@@ -11,6 +13,7 @@ const SpeechToIsl = () => {
     const [button, setButton] = useState("Start Recording");
     const [wordList, setWordList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const {LoadingScreen, startLoading, stopLoading } = useLoadingScreen();
 
     useEffect(() => {
         if (!("webkitSpeechRecognition" in window)) {
@@ -70,11 +73,14 @@ const SpeechToIsl = () => {
         if (isListening) {
             await stopVoiceInput();
         } else {
+            setTextInput("");
+            setTranscript("");
             startListening();
         }
     };
 
     const stopVoiceInput = async () => {
+        startLoading();
         const finalText = textInput + (transcript ? (textInput ? " " : "") + transcript : "");
         setTextInput(finalText);
         setTranscript("");
@@ -82,17 +88,20 @@ const SpeechToIsl = () => {
 
         try {
             const response = await axios.post('http://localhost:9001/isl_text', {
-                text: finalText
+                sentence: finalText
             });
             setWordList(response.data);
+            stopLoading();
             setIsModalOpen(true);
         } catch (error) {
+            stopLoading();
             console.error('Error getting word list:', error);
         }
     };
 
     return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
+            <LoadingScreen/>
             <h1 style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
             <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
                 <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
