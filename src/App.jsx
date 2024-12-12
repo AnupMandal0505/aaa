@@ -75,6 +75,7 @@ import ProtectedRoute from './components/Dashboard/ProtectedRoute'
 import VideoCall from './components/ISL/VideoCall'
 import Call from './pages/Call'
 import HolisticPage from './pages/HolisticPage'
+import SignLanguageRecognition from './pages/ISLText'
 export const StatusContext = createContext();
 export const PageContext = createContext();
 
@@ -96,6 +97,9 @@ function App({ children }) {
             <Route path='/calling/:id' element={<VideoCall />} />
             <Route path='/call' element={<>
               <Call />
+            </>} />
+            <Route path='/isltext' element={<>
+              < SignLanguageRecognition/>
             </>} />
           </Routes>
         </SocketProvider>

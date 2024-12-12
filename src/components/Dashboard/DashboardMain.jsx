@@ -80,7 +80,7 @@ const DashboardMain = () => {
             <h3 className="font-bold mb-2 text-controller"> <FontAwesomeIcon icon={faHandsBubbles} /> ISL To  Speech <FontAwesomeIcon icon={faMicrophoneLines} /></h3>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(14)}>
+          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => navigate('/isltext')}>
             <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faHandsBubbles} /> ISL To Text <FontAwesomeIcon icon={faFilePen} /></h3>
           </div>
           {/*
