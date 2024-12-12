@@ -1,8 +1,7 @@
 import './SpeechToIsl.css';
 import { useState, useEffect, useRef } from "react";
-import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import VideoModal from '../../components/VideoModal';
-
 import useLoadingScreen from "../../hooks/Loading";
 
 const SpeechToIsl = () => {
@@ -13,7 +12,41 @@ const SpeechToIsl = () => {
     const [button, setButton] = useState("Start Recording");
     const [wordList, setWordList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const {LoadingScreen, startLoading, stopLoading } = useLoadingScreen();
+    const [error, setError] = useState("");
+    const { LoadingScreen, startLoading, stopLoading } = useLoadingScreen();
+
+    const API_KEY = 'AIzaSyCcQjq-H7r7mEhLVE6XbsrraoT5Q4MXbos';
+    const genAI = new GoogleGenerativeAI(API_KEY);
+
+    const handleConversion = async (sentence) => {
+        if (!sentence.trim()) {
+            throw new Error('Sentence is empty');
+        }
+        
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+            
+            const prompt = `You are an expert in Indian Sign Language. Convert the English sentence given in between backticks to Indian Sign Language English using its grammar rules. \`${sentence}\`. Give only the English words without any extra characters.`;
+            
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            
+            // Fix: Properly access the text content from the response
+            const responseText = response.text();
+            if (!responseText) {
+                throw new Error('Empty response from API');
+            }
+
+            // Process the response text
+            const words = responseText.trim().split(" ");
+            const finalWords = words.filter(word => word !== "" && word !== " ").map(word => word.toLowerCase());
+            
+            return finalWords;
+        } catch (err) {
+            console.error('Error:', err);
+            throw err;
+        }
+    };
 
     useEffect(() => {
         if (!("webkitSpeechRecognition" in window)) {
@@ -34,7 +67,7 @@ const SpeechToIsl = () => {
             recognition.grammars = SpeechRecognitionList;
         }
 
-        recognition.onresult = async (event) => {
+        recognition.onresult = (event) => {
             let interimTranscript = "";
             for (let i = 0; i < event.results.length; i++) {
                 interimTranscript += event.results[i][0].transcript;
@@ -44,6 +77,9 @@ const SpeechToIsl = () => {
 
         recognition.onerror = (event) => {
             console.error("Speech recognition error:", event.error);
+            setError("Speech recognition error. Please try again.");
+            stopListening();
+            setButton("Start Recording");
         };
 
         recognition.onend = () => {
@@ -51,7 +87,9 @@ const SpeechToIsl = () => {
         };
 
         return () => {
-            recognition.stop();
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
         };
     }, []);
 
@@ -70,6 +108,7 @@ const SpeechToIsl = () => {
     };
 
     const startStopListening = async () => {
+        setError("");
         if (isListening) {
             await stopVoiceInput();
         } else {
@@ -87,45 +126,52 @@ const SpeechToIsl = () => {
         stopListening();
 
         try {
-            const response = await axios.post('http://localhost:9001/isl_text', {
-                sentence: finalText
-            });
-            setWordList(response.data);
-            stopLoading();
+            if (!finalText.trim()) {
+                throw new Error('No speech detected');
+            }
+            
+            const response = await handleConversion(finalText);
+            if (!response || response.length === 0) {
+                throw new Error('No translation generated');
+            }
+            
+            setWordList(response);
             setIsModalOpen(true);
         } catch (error) {
-            stopLoading();
+            setError(error.message || "Failed to convert speech to ISL. Please try again.");
             console.error('Error getting word list:', error);
+        } finally {
+            stopLoading();
         }
     };
 
     return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
-            <LoadingScreen/>
-            <h1 style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
-            <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
-                    {button === "Start Recording" ? 
-                        <div style={{ width: '100%', height: '100%', textAlign: 'center' }}>
+        <div className="flex flex-col items-center justify-center w-full h-full gap-10 bg-gray-100">
+            <LoadingScreen />
+            <h1 className="font-bold text-2xl">Speech to ISL Translator</h1>
+            
+            <div className="w-[44vw] h-[60vh] flex flex-col items-center justify-center gap-10 bg-white rounded-lg shadow-lg p-6">
+                <div className="w-[40vw] h-[40vh] bg-white rounded-lg shadow-sky-200 shadow-md p-5 text-xl font-medium">
+                    {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+                    {button === "Start Recording" ? (
+                        <div className="w-full h-full text-center">
                             Press the button to start speaking....
-                        </div> : 
-                        <div style={{ width: '100%', height: '100%' }}>
+                        </div>
+                    ) : (
+                        <div className="w-full h-full overflow-auto">
                             {isListening ? textInput + transcript : textInput}
                         </div>
-                    }
+                    )}
                 </div>
                 
                 <button 
                     onClick={async () => {
                         await startStopListening();
-                        if (button === "Stop Recording") {
-                            setButton("Start Recording");
-                        } else {
-                            setButton("Stop Recording");
-                        }
+                        setButton(prev => prev === "Stop Recording" ? "Start Recording" : "Stop Recording");
                     }} 
-                    className={button === 'Start Recording' ? "start-btn" : "stop-btn"} 
-                    style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }}
+                    className={`w-48 h-10 rounded-full text-white font-bold ${
+                        button === 'Start Recording' ? "start-btn" : "stop-btn"
+                    }`}
                 >
                     {button}
                 </button>
