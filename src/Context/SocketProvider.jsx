@@ -385,7 +385,8 @@ const SocketProvider = ({ children }) => {
         error,
         setError,
         notify,
-        senderName
+        senderName,
+        connectUser
     };
 
     return (
