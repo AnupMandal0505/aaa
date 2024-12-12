@@ -74,6 +74,7 @@ import { useState, useContext, createContext } from 'react';
 import ProtectedRoute from './components/Dashboard/ProtectedRoute'
 import VideoCall from './components/ISL/VideoCall'
 import Call from './pages/Call'
+import HolisticPage from './pages/HolisticPage'
 export const StatusContext = createContext();
 export const PageContext = createContext();
 

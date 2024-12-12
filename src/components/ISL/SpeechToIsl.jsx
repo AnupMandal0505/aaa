@@ -1,8 +1,7 @@
 import './SpeechToIsl.css';
 import { useState, useEffect, useRef } from "react";
-import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import VideoModal from '../../components/VideoModal';
-
 import useLoadingScreen from "../../hooks/Loading";
 
 const SpeechToIsl = () => {
@@ -34,7 +33,7 @@ const SpeechToIsl = () => {
             recognition.grammars = SpeechRecognitionList;
         }
 
-        recognition.onresult = async (event) => {
+        recognition.onresult = (event) => {
             let interimTranscript = "";
             for (let i = 0; i < event.results.length; i++) {
                 interimTranscript += event.results[i][0].transcript;
@@ -44,6 +43,9 @@ const SpeechToIsl = () => {
 
         recognition.onerror = (event) => {
             console.error("Speech recognition error:", event.error);
+            setError("Speech recognition error. Please try again.");
+            stopListening();
+            setButton("Start Recording");
         };
 
         recognition.onend = () => {
@@ -51,7 +53,9 @@ const SpeechToIsl = () => {
         };
 
         return () => {
-            recognition.stop();
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
         };
     }, []);
 
@@ -70,6 +74,7 @@ const SpeechToIsl = () => {
     };
 
     const startStopListening = async () => {
+        setError("");
         if (isListening) {
             await stopVoiceInput();
         } else {
@@ -88,24 +93,31 @@ const SpeechToIsl = () => {
         stopListening();
 
         try {
-            const response = await axios.post('http://localhost:9001/isl_text', {
-                sentence: finalText
-            });
-            setWordList(response.data);
-            stopLoading();
+            if (!finalText.trim()) {
+                throw new Error('No speech detected');
+            }
+
+            const response = await handleConversion(finalText);
+            if (!response || response.length === 0) {
+                throw new Error('No translation generated');
+            }
+
+            setWordList(response);
             setIsModalOpen(true);
         } catch (error) {
-            stopLoading();
+            setError(error.message || "Failed to convert speech to ISL. Please try again.");
             console.error('Error getting word list:', error);
+        } finally {
+            stopLoading();
         }
     };
 
     return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
             <LoadingScreen />
-            <h1 className="heading11" style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
-            <div className='working-box' style={{ gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
-                <div className="inbox" style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
+            <h1 style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
+            <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
                     {button === "Start Recording" ?
                         <div style={{ width: '100%', height: '100%', textAlign: 'center' }}>
                             Press the button to start speaking....
