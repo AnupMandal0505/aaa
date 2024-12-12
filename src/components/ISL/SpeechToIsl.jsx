@@ -7,6 +7,7 @@ import useLoadingScreen from "../../hooks/Loading";
 const SpeechToIsl = () => {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState("");
+    const [error, setError] = useState("");
     const recognitionRef = useRef(null);
     const [textInput, setTextInput] = useState("");
     const [button, setButton] = useState("Start Recording");
@@ -14,9 +15,47 @@ const SpeechToIsl = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { LoadingScreen, startLoading, stopLoading } = useLoadingScreen();
 
+    // Initialize Gemini API
+    const genAI = new GoogleGenerativeAI('AIzaSyCcQjq-H7r7mEhLVE6XbsrraoT5Q4MXbos');
+
+    const handleConversion = async (sentence) => {
+        if (!sentence.trim()) {
+            throw new Error('No speech detected');
+        }
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+            
+            const prompt = `You are an expert in Indian Sign Language. Convert the English sentence given in between backticks to Indian Sign Language English using its grammar rules. \`${sentence}\`. Give only the English words without any extra characters.`;
+            
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            
+            // Get the text from the response
+            const text = await response.text();
+            if (!text) {
+                throw new Error('Empty response from translation');
+            }
+
+            // Process the response
+            const words = text.trim().split(" ");
+            const finalWords = words.filter(word => word !== "" && word !== " ").map(word => word.toLowerCase());
+            
+            if (finalWords.length === 0) {
+                throw new Error('No valid translation generated');
+            }
+
+            return finalWords;
+        } catch (err) {
+            console.error('Translation error:', err);
+            throw new Error('Failed to translate to ISL');
+        }
+    };
+
     useEffect(() => {
         if (!("webkitSpeechRecognition" in window)) {
             console.error("Speech recognition API not supported.");
+            setError("Speech recognition not supported in this browser.");
             return;
         }
 
@@ -63,6 +102,7 @@ const SpeechToIsl = () => {
         if (recognitionRef.current && !isListening) {
             recognitionRef.current.start();
             setIsListening(true);
+            setError("");
         }
     };
 
@@ -74,16 +114,15 @@ const SpeechToIsl = () => {
     };
 
     const startStopListening = async () => {
-        setError("");
         if (isListening) {
             await stopVoiceInput();
         } else {
             setTextInput("");
             setTranscript("");
+            setError("");
             startListening();
         }
     };
-
 
     const stopVoiceInput = async () => {
         startLoading();
@@ -98,10 +137,6 @@ const SpeechToIsl = () => {
             }
 
             const response = await handleConversion(finalText);
-            if (!response || response.length === 0) {
-                throw new Error('No translation generated');
-            }
-
             setWordList(response);
             setIsModalOpen(true);
         } catch (error) {
@@ -118,17 +153,22 @@ const SpeechToIsl = () => {
             <h1 style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
             <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
                 <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
-                    {button === "Start Recording" ?
+                    {error && (
+                        <div style={{ color: 'red', marginBottom: '10px', fontSize: '14px' }}>
+                            {error}
+                        </div>
+                    )}
+                    {button === "Start Recording" ? 
                         <div style={{ width: '100%', height: '100%', textAlign: 'center' }}>
                             Press the button to start speaking....
-                        </div> :
+                        </div> : 
                         <div style={{ width: '100%', height: '100%' }}>
                             {isListening ? textInput + transcript : textInput}
                         </div>
                     }
                 </div>
-
-                <button
+                
+                <button 
                     onClick={async () => {
                         await startStopListening();
                         if (button === "Stop Recording") {
@@ -136,7 +176,7 @@ const SpeechToIsl = () => {
                         } else {
                             setButton("Stop Recording");
                         }
-                    }}
+                    }} 
                     className={button === 'Start Recording' ? "start-btn" : "stop-btn"}
                     style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }}
                 >
@@ -144,7 +184,7 @@ const SpeechToIsl = () => {
                 </button>
             </div>
 
-            <VideoModal
+            <VideoModal 
                 words={wordList}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
