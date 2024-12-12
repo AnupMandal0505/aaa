@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 
 const SignupPage = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
+
   // States to manage input values
   const [first_name, setFirstName] = useState('');
   const [last_name, setLastName] = useState('');
@@ -57,8 +60,8 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 className="text-2xl font-bold mb-5 text-center text-gray-800">Sign Up</h2>
+      <form onSubmit={handleSubmit} className="mx-3 my-3 bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h2 className="text-xl font-bold mb-4 text-center text-gray-800">Sign Up</h2>
 
         {/* Display error message */}
         {error && <div className="text-red-600 mb-4">{error}</div>}
@@ -132,7 +135,6 @@ const SignupPage = () => {
             required
           />
         </div>
-
         {/* Submit Button */}
         <button
           type="submit"
@@ -141,6 +143,12 @@ const SignupPage = () => {
         >
           {loading ? 'Signing Up...' : 'Sign Up'}
         </button>
+        {/* Remember Me Checkbox */}
+        <div className="fix-create-new-user flex items-center " style={{ display: 'flex', justifyContent: 'center' }}>
+          <h6 style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '400' }} onClick={(() => {
+            navigate('/signin');
+          })}>Already have an account</h6>
+        </div>
       </form>
     </div>
   );

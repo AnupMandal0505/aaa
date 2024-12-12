@@ -1,16 +1,15 @@
-import React, { useState,useContext } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 import { StatusContext } from "../App";
 
 
 const LoginPage = () => {
-  const {setLoginStatus} = useContext(StatusContext);
+  const { setLoginStatus } = useContext(StatusContext);
 
   // States to manage input values
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // Add loading state
 
@@ -37,15 +36,15 @@ const LoginPage = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
-          alert("Signin successful!");
-          // Store tokens in localStorage
-          localStorage.setItem("token", response.data.access); // Access token
-          localStorage.setItem("refreshToken", response.data.refresh); // Refresh token
+        alert("Signin successful!");
+        // Store tokens in localStorage
+        localStorage.setItem("token", response.data.access); // Access token
+        localStorage.setItem("refreshToken", response.data.refresh); // Refresh token
 
-          console.log("Tokens saved:", response.data);
+        console.log("Tokens saved:", response.data);
 
-          navigate("/dash");
-          
+        navigate("/dash");
+
       }
 
     } catch (err) {
@@ -61,9 +60,9 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
+      <form style={{ margin: '0px 20px' }}
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full"
+        className="set-respons bg-white p-6 rounded-lg shadow-lg max-w-sm w-full"
       >
         <h2 className="text-2xl font-bold mb-5 text-center text-gray-800">
           Login
@@ -113,30 +112,19 @@ const LoginPage = () => {
         </div>
 
         {/* Remember Me Checkbox */}
-        <div className="flex items-center mb-4">
-          <input
-            id="remember"
-            type="checkbox"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
-            className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-          />
-          <label
-            htmlFor="remember"
-            className="ml-2 block text-sm text-gray-900"
-          >
-            Remember me
-          </label>
+        <div className="fix-create-new-user flex items-center mb-4">
+          <a onClick={(() => {
+            navigate('/signup');
+          })}>Create new user</a>
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
-          className={`w-full py-2 px-4 rounded-lg ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 text-white"
-          }`}
+          className={`w-full py-2 px-4 rounded-lg ${loading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 text-white"
+            }`}
           disabled={loading} // Disable button when loading
         >
           {loading ? "Signing in..." : "Sign In"}
