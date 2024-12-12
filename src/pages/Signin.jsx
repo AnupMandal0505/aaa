@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 import { StatusContext } from "../App";
+import { useSocket } from "../Context/SocketProvider";
 
 
 const LoginPage = () => {
@@ -15,6 +16,8 @@ const LoginPage = () => {
 
 
   const navigate = useNavigate(); // Initialize useNavigate
+
+  const {connectUser} = useSocket();
 
   // Form submit handler
   const handleSubmit = async (e) => {
@@ -40,9 +43,10 @@ const LoginPage = () => {
         // Store tokens in localStorage
         localStorage.setItem("token", response.data.access); // Access token
         localStorage.setItem("refreshToken", response.data.refresh); // Refresh token
+        localStorage.setItem("user", response.data?.user?.username); // Username
 
         console.log("Tokens saved:", response.data);
-
+        connectUser(response.data?.user?.username || localStorage.getItem("user"));
         navigate("/dash");
 
       }

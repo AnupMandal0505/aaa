@@ -56,7 +56,7 @@ const SignLanguageRecognition = () => {
     };
 
     const setupWebSocket = () => {
-      wsRef.current = new WebSocket('ws://localhost:9002/ws');
+      wsRef.current = new WebSocket('ws://localhost:9002/ws/full');
       
       wsRef.current.onopen = () => {
         console.log('WebSocket Connected');
