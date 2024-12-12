@@ -120,12 +120,12 @@ const Navbar = () => {
 
             >
 
-                <div onClick={() => setPage(0)} className='dash-menu-set-a'><img src={i1} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Dashboard</p></div>
-                <div onClick={() => setPage(100)} className='dash-menu-set-a'><img src={i1} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Create Call</p></div>
-                <div onClick={() => setPage(1)} className='dash-menu-set-a'><img src={i2} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Call History</p></div>
-                <div onClick={() => setPage(2)} className='dash-menu-set-a'><img src={i3} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Subscription</p></div>
-                <div onClick={() => setPage(3)} className='dash-menu-set-a'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Payment History</p></div>
-                <div onClick={() => setPage(4)} className='dash-menu-set-a'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Logout</p></div>
+                <div onClick={() => { setPage(0); setIsOpen(false); }} className='dash-menu-set-a'><img src={i1} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Dashboard</p></div>
+                <div onClick={() => { setPage(100); setIsOpen(false); }} className='dash-menu-set-a'><img src={i1} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Create Call</p></div>
+                <div onClick={() => { setPage(1); setIsOpen(false); }} className='dash-menu-set-a'><img src={i2} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Call History</p></div>
+                <div onClick={() => { setPage(2); setIsOpen(false); }} className='dash-menu-set-a'><img src={i3} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Subscription</p></div>
+                <div onClick={() => { setPage(3); setIsOpen(false); }} className='dash-menu-set-a'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Payment History</p></div>
+                <div onClick={() => { setPage(4); setIsOpen(false); }} className='dash-menu-set-a'><img src={i4} width={50} height={50} style={{ maxHeight: '50px' }} /><p style={{ padding: '10px' }}>Logout</p></div>
 
                 {/*<div className="px-2 pt-2 pb-3 space-y-1">
                     <Link

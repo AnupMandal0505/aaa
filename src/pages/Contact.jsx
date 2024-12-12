@@ -1,105 +1,115 @@
-import { useRef, useEffect,useState } from 'react';
-import { Hands, HAND_CONNECTIONS } from '@mediapipe/hands';
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
-import * as cam from '@mediapipe/camera_utils';
+import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
-import white from '../res/white.jpg'
+const Contact = () => {
 
-function Contact() {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const cameraRef = useRef(null);
-  const [imgSrc, setImgSrc] = useState('');
-  const [text,setText] = useState("")
-
-
-  useEffect(()=>{
-    const api_call = async() =>{
-      await fetch('http://127.0.0.1:5000/pred',{
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({img:imgSrc})
-      }).then(res=>res.json()).then(data=> setText(text+data['char']) )
-    }
-
-    api_call()
-  },[imgSrc]);
-  
-
-  useEffect(() => {
-    const hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-    });
-
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1, 
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.7,
-    });
-
-    hands.onResults((results) => {
-      const processResults = async() => {
-              const canvas = canvasRef.current;
-              const canvasCtx = canvas.getContext('2d');
-              canvasCtx.save();
-              const whiteImage = new Image();
-              whiteImage.src = white;
-              canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-              canvasCtx.drawImage(whiteImage, 0, 0, canvas.width, canvas.height);
-
-              if (results.multiHandLandmarks) {
-                for (const landmarks of results.multiHandLandmarks) {
-                  drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
-                    color: 'lightgreen',
-                    lineWidth: 4,  
-                  });
-          
-                  drawLandmarks(canvasCtx, landmarks, {
-                    color: 'lightgreen', 
-                    lineWidth: 4,  
-                    radius: 2, 
-                  });
-                }
-              }
-              canvasCtx.restore();
-              setImgSrc(canvas.toDataURL('image/png'));                  
-          };
-              // Set a delay before processing results
-              const timeoutId = setTimeout(processResults, 2000); // 1000ms delay (1 second)
-
-              // Clear the timeout if the component unmounts or before setting a new timeout
-              return () => clearTimeout(timeoutId);
-              
-      });
-
-    if (videoRef.current) {
-      cameraRef.current = new cam.Camera(videoRef.current, {
-        onFrame: async () => {
-          await hands.send({ image: videoRef.current });
-        },
-        width: 640,
-        height: 480,
-      });
-      cameraRef.current.start();
-    }
-  }, []);
 
   return (
-    <div style={{paddingTop:'20vh'}}>
-      <h1>{text}</h1>
-      <video ref={videoRef} style={{  }} />
-      <canvas ref={canvasRef} width="640" height="480" />
-    </div>
+    <>
+      <Navbar />
+
+      <div className="container-fluid " style={{ paddingTop: '100px' }}>
+        <div className="row justify-content-center text-center">
+          <div className="col-12 col-md-12">
+            <h1 ><span>-</span>Contact Us<span>-</span></h1>
+            <p  >
+              Explore Our Recent Creations, Demonstrating Our Commitment to Delivering Transformative Digital Solutions.
+            </p>
+            {/* <button type="button" className="btn btn-lg btn-primary mb-3 mb-md-4 mb-xl-5">Connect Now</button> */}
+          </div>
+        </div>
+      </div>
+      <div className="container-fluid opacity-90   " >
+        <div className="row" style={{
+          backgroundImage: `url('https://cdn.pixabay.com/photo/2015/09/21/23/28/love-sign-950912_1280.jpg')`, backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundPosition: 'center',
+        }}>
+          <div className="col-md-6 flex flex-col justify-center items-center text-center text-white">
+            <h1>Contact Us</h1>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim ratione, accusamus ad sit error cum!</p>
+          </div>
+
+          <div className="col-md-6">
+            <div className="max-w-sm mx-auto m-5">
+              <div className="mb-5">
+                <label
+                  htmlFor="email"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Your email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                  placeholder="name@flowbite.com"
+                  required
+                />
+              </div>
+
+              <div className="mb-5">
+                <label
+                  htmlFor="Full Name"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Your Full Name
+                </label>
+                <input
+                  type="text"
+                  id="First Name"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                  required
+                />
+              </div>
+
+              <div className="mb-5">
+                <label
+                  htmlFor="Phone"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Phone number
+                </label>
+                <input
+                  type="number"
+                  id="Phone"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+                  required
+                />
+              </div>
+
+              <div className="flex items-start mb-5">
+                <div className="flex items-center h-5">
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800"
+                    required
+                  />
+                </div>
+                <label
+                  htmlFor="terms"
+                  className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  I agree with the{" "}
+                  <a href="#" className="text-blue-600 hover:underline dark:text-blue-500">
+                    terms and conditions
+                  </a>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Footer />
+    </>
   );
-}
+};
 
 export default Contact;
-
-
-/*
-
-      {imgSrc && <img src={imgSrc} width={640} height={480} alt="Canvas content" />}
-*/

@@ -1,10 +1,12 @@
 import './SpeechToIsl.css';
-import { useState } from "react";
+import { useState, useContext } from "react";
 import VideoModal from '../../components/VideoModal';
 import useLoadingScreen from '../../hooks/Loading';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
+import { PageContext } from '../../App';
 const SpeechToIsl = () => {
+    const { setPage } = useContext(PageContext);
+
     const [textInput, setTextInput] = useState("");
     const [wordList, setWordList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,24 +108,26 @@ const SpeechToIsl = () => {
                         />
                     </div>
                 </div>
-
-                <button
-                    onClick={handleTranslate}
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#4F46E5',
-                        color: 'white',
-                        borderRadius: '5px',
-                        fontWeight: '600',
-                        width: '200px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                    }}
-                    onMouseOver={e => e.target.style.backgroundColor = '#4338CA'}
-                    onMouseOut={e => e.target.style.backgroundColor = '#4F46E5'}
-                >
-                    Translate
-                </button>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                    <button style={{ width: '100px', height: '40px', backgroundColor: 'lightgreen', borderRadius: '20px', fontWeight: '800', color: 'white' }} onClick={() => setPage(0)}>back</button>
+                    <button
+                        onClick={handleTranslate}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#4F46E5',
+                            color: 'white',
+                            borderRadius: '5px',
+                            fontWeight: '600',
+                            width: '200px',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseOver={e => e.target.style.backgroundColor = '#4338CA'}
+                        onMouseOut={e => e.target.style.backgroundColor = '#4F46E5'}
+                    >
+                        Translate
+                    </button>
+                </div>
             </div>
 
             <VideoModal

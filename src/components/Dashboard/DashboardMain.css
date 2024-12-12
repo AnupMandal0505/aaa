@@ -65,7 +65,7 @@
     flex-direction: column;
     text-align: center;
     gap: 20px;
-    padding: 50px 50px;
+    padding: 100px 50px;
   }
 
   .current-call-list{

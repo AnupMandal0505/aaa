@@ -11,7 +11,7 @@ const DashboardMain = () => {
   const [callHistory, setCallHistory] = useState([]);
   const [error, setError] = useState("");
 
-  const {callUser} = useSocket();
+  const { callUser } = useSocket();
   const { setPage } = useContext(PageContext);
   const fetchCallHistory = async () => {
     try {
@@ -70,7 +70,7 @@ const DashboardMain = () => {
       <div className='work-menu' style={{ display: 'flex' }}>
         <div className="task-menu">
           <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(11)}>
-            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faMicrophoneLines} /> Speech TO ISL <FontAwesomeIcon icon={faHandsBubbles} />
+            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faMicrophoneLines} /> Speech To ISL <FontAwesomeIcon icon={faHandsBubbles} />
             </h3>
           </div>
           <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(12)}>
@@ -81,11 +81,13 @@ const DashboardMain = () => {
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(14)}>
-            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faHandsBubbles} /> ISL TO Text <FontAwesomeIcon icon={faFilePen} /></h3>
+            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faHandsBubbles} /> ISL To Text <FontAwesomeIcon icon={faFilePen} /></h3>
           </div>
+          {/*
           <div className="bg-white shadow-md rounded-lg p-3">
             <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faCamera} /> Live Video Translator</h3>
           </div>
+          */}
         </div>
         <div className='res-call-list' style={{ flex: '3', paddingRight: '60px' }}>
           <h3 style={{ color: 'white', paddingTop: '30px', textAlign: 'center' }}>Friend List</h3>

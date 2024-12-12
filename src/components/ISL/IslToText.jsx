@@ -1,8 +1,10 @@
 import './SpeechToIsl.css';
 import "./VideoUploader.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
+import { PageContext } from '../../App';
 
 const IslToText = () => {
+    const { setPage } = useContext(PageContext);
 
     /* This is Sorce Video......*/
     const [videoSrc, setVideoSrc] = useState(null);
@@ -134,21 +136,25 @@ const IslToText = () => {
                             }
                         </div>
                 }
-                <button onClick={() => {
-                    startStopListening();
-                    if (button === "Back To Upload") {
-                        setButton("Convert to Text");
-                        setTranscript("");
-                        setTextInput("");
-                        setVideoPlay(false);
-                        setVideoSrc(null)
-                    } else {
-                        setButton("Back To Upload");
-                        setVideoPlay(true);
-                    }
-                }} className={button === 'Convert to Text' ? "start-btn" : "stop-btn"} style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }} >
-                    {button}
-                </button>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                    <button style={{ width: '100px', height: '40px', backgroundColor: 'lightgreen', borderRadius: '20px', fontWeight: '800', color: 'white' }} onClick={() => setPage(0)}>back</button>
+
+                    <button onClick={() => {
+                        startStopListening();
+                        if (button === "Back To Upload") {
+                            setButton("Convert to Text");
+                            setTranscript("");
+                            setTextInput("");
+                            setVideoPlay(false);
+                            setVideoSrc(null)
+                        } else {
+                            setButton("Back To Upload");
+                            setVideoPlay(true);
+                        }
+                    }} className={button === 'Convert to Text' ? "start-btn" : "stop-btn"} style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }} >
+                        {button}
+                    </button>
+                </div>
             </div>
 
         </div>

@@ -1,10 +1,12 @@
 import './SpeechToIsl.css';
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import VideoModal from '../../components/VideoModal';
 import useLoadingScreen from "../../hooks/Loading";
+import { PageContext } from '../../App';
 
 const SpeechToIsl = () => {
+    const { setPage } = useContext(PageContext);
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState("");
     const [error, setError] = useState("");
@@ -30,7 +32,7 @@ const SpeechToIsl = () => {
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
-            
+
             // Get the text from the response
             const text = await response.text();
             if (!text) {
@@ -40,7 +42,7 @@ const SpeechToIsl = () => {
             // Process the response
             const words = text.trim().split(" ");
             const finalWords = words.filter(word => word !== "" && word !== " ").map(word => word.toLowerCase());
-            
+
             if (finalWords.length === 0) {
                 throw new Error('No valid translation generated');
             }
@@ -150,41 +152,43 @@ const SpeechToIsl = () => {
     return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px', alignItems: 'center' }}>
             <LoadingScreen />
-            <h1 style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
-            <div style={{ width: '44vw', height: '60vh', gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ backgroundColor: 'white', width: '40vw', height: '40vh', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
+            <h1 className="heading11" style={{ fontWeight: 'bold' }}>Speech to ISL Translator</h1>
+            <div className='working-box' style={{ gap: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+                <div className="inbox" style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0px 0px 3px 2px skyblue', padding: '20px', fontSize: '20px', fontWeight: '500' }}>
                     {error && (
                         <div style={{ color: 'red', marginBottom: '10px', fontSize: '14px' }}>
                             {error}
                         </div>
                     )}
-                    {button === "Start Recording" ? 
+                    {button === "Start Recording" ?
                         <div style={{ width: '100%', height: '100%', textAlign: 'center' }}>
                             Press the button to start speaking....
-                        </div> : 
+                        </div> :
                         <div style={{ width: '100%', height: '100%' }}>
                             {isListening ? textInput + transcript : textInput}
                         </div>
                     }
                 </div>
-                
-                <button 
-                    onClick={async () => {
-                        await startStopListening();
-                        if (button === "Stop Recording") {
-                            setButton("Start Recording");
-                        } else {
-                            setButton("Stop Recording");
-                        }
-                    }} 
-                    className={button === 'Start Recording' ? "start-btn" : "stop-btn"}
-                    style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }}
-                >
-                    {button}
-                </button>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                    <button style={{ width: '100px', height: '40px', backgroundColor: 'lightgreen', borderRadius: '20px', fontWeight: '800', color: 'white' }} onClick={() => setPage(0)}>back</button>
+                    <button
+                        onClick={async () => {
+                            await startStopListening();
+                            if (button === "Stop Recording") {
+                                setButton("Start Recording");
+                            } else {
+                                setButton("Stop Recording");
+                            }
+                        }}
+                        className={button === 'Start Recording' ? "start-btn" : "stop-btn"}
+                        style={{ width: '200px', height: '40px', borderRadius: '20px', color: 'white', fontWeight: '800' }}
+                    >
+                        {button}
+                    </button>
+                </div>
             </div>
 
-            <VideoModal 
+            <VideoModal
                 words={wordList}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
