@@ -13,7 +13,7 @@ const SpeechToIsl = () => {
     const [error, setError] = useState("");
     const { LoadingScreen, startLoading, stopLoading } = useLoadingScreen();
 
-    const API_KEY = 'AIzaSyCcQjq-H7r7mEhLVE6XbsrraoT5Q4MXbos';
+    const API_KEY = 'AIzaSyBvP54muXf9wkitql0g9FOnqM1NoFeB-es';
     const genAI = new GoogleGenerativeAI(API_KEY);
 
     const handleConversion = async (sentence) => {
@@ -22,7 +22,7 @@ const SpeechToIsl = () => {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
             const prompt = `You are an expert in Indian Sign Language. Convert the English sentence given in between backticks to Indian Sign Language English using its grammar rules, such as removing verbs like 'are', 'is', 'am' etc but except only for 'thankyou' and 'goodmorning', if these two exist in the sentence then do not split them, keep these words intact without any spaces in between, in the output and the rest in Indian Sign Language grammar. \`${sentence}\`. Give only the English words without any extra characters.`;
 
