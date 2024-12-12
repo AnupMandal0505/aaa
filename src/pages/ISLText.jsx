@@ -16,7 +16,7 @@ const SignLanguageRecognition = () => {
   // Prediction tracking
   const predictionCountRef = useRef({});
   const lastAddedWordRef = useRef('');
-  const PREDICTION_THRESHOLD = 3;
+  const PREDICTION_THRESHOLD = 5;
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
