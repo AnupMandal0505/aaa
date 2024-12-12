@@ -22,7 +22,7 @@ const loadMediaPipeScripts = async () => {
 };
 
 const loadWS = async ()=>{
-    const ws = new WebSocket('http://localhost:9002/ws/hands')
+    const ws = new WebSocket('http://localhost:8000/ws/hands')
     return ws;
 }
 
