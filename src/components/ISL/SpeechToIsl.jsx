@@ -24,10 +24,10 @@ const SpeechToIsl = () => {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-            
-            const prompt = `You are an expert in Indian Sign Language. Convert the English sentence given in between backticks to Indian Sign Language English using its grammar rules. \`${sentence}\`. Give only the English words without any extra characters.`;
-            
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const prompt = `You are an expert in Indian Sign Language. Convert the English sentence given in between backticks to Indian Sign Language English using its grammar rules, such as removing verbs like 'are', 'is', 'am' etc but except only for 'thankyou' and 'goodmorning', if these two exist in the sentence then do not split them, keep these words intact without any spaces in between, in the output and the rest in Indian Sign Language grammar. \`${sentence}\`. Give only the English words without any extra characters.`;
+
             const result = await model.generateContent(prompt);
             const response = await result.response;
             

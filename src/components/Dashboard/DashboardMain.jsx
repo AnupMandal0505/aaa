@@ -5,11 +5,13 @@ import { useContext, useEffect, useState } from 'react';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { PageContext } from '../../App';
+import { useSocket } from '../../Context/SocketProvider';
 const DashboardMain = () => {
   const navigate = useNavigate();
   const [callHistory, setCallHistory] = useState([]);
   const [error, setError] = useState("");
 
+  const {callUser} = useSocket();
   const { setPage } = useContext(PageContext);
   const fetchCallHistory = async () => {
     try {
@@ -37,7 +39,9 @@ const DashboardMain = () => {
 
 
   const caling = (dialer) => {
-    navigate(`/calling/${dialer}`);
+    callUser(dialer);
+    navigate(`/call`);
+
   }
 
 
