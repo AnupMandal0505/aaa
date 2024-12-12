@@ -36,21 +36,22 @@ const BitHistory = () => {
           <thead>
             <tr>
               <th>Receiver</th>
-              <th>details</th>
-              <th>bonus</th>
-              <th>balance</th>
-              <th>date</th>
-              <th>Status</th>
+              <th>Details</th>
+              <th>Type Subscription</th>
+              <th>Left Call</th>
+              <th>Date</th>
+              <th>Last Subscription Amount</th>
             </tr>
           </thead>
           <tbody>
             {points.map((points) => (
               <tr key={points.receiver}>
+                <td>{points.receiver}</td>
                 <td>{points.details}</td>
-                <td>{points.bonus}</td>
-                <td>{points.balance}</td>
+                <td>{points.type_subscription}</td>
+                <td>{points.left_call}</td>
                 <td>{points.date}</td>
-                <td>{points.status}</td>
+                <td>{points.last_subscription_amount}</td>
               </tr>
             ))}
           </tbody>

@@ -67,7 +67,7 @@ import Signup from './pages/Signup'
 // index.js
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Service from './pages/Service'
-import {SocketProvider} from './Context/SocketProvider'
+import { SocketProvider } from './Context/SocketProvider'
 import Navbar from './components/Navbar'
 import Dashbord from './pages/Dashbord'
 import { useState, useContext, createContext } from 'react';
@@ -76,30 +76,30 @@ import VideoCall from './components/ISL/VideoCall'
 import Call from './pages/Call'
 import HolisticPage from './pages/HolisticPage'
 export const StatusContext = createContext();
-
+export const PageContext = createContext();
 
 function App({ children }) {
   const [loginStatus, setLoginStatus] = useState(true);
+  const [page, setPage] = useState(0);
   return (
     <StatusContext.Provider value={{ loginStatus, setLoginStatus }}>
-      <SocketProvider>
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/contact' element={<Contact />} />
-        <Route path='/signin' element={<Signin />} />
-        <Route path='/signup' element={<Signup />} />
-        <Route path='/service' element={<Service />} />
-        <Route path='/dash' element={<Dashbord />} />
-        <Route path='/calling/:id' element={<VideoCall />} />
-        <Route path='/call' element={<>
-            <Call />
-        </>} />
-        <Route path='/words' element={<>
-            <HolisticPage />
-        </>} />
-      </Routes>
-      </SocketProvider>
+      <PageContext.Provider value={{ page, setPage }}>
+        <SocketProvider>
+          <Routes>
+            <Route path='/' element={<Home />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/contact' element={<Contact />} />
+            <Route path='/signin' element={<Signin />} />
+            <Route path='/signup' element={<Signup />} />
+            <Route path='/service' element={<Service />} />
+            <Route path='/dash' element={<Dashbord />} />
+            <Route path='/calling/:id' element={<VideoCall />} />
+            <Route path='/call' element={<>
+              <Call />
+            </>} />
+          </Routes>
+        </SocketProvider>
+      </PageContext.Provider>
     </StatusContext.Provider>
   )
 }

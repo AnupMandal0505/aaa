@@ -4,12 +4,14 @@ import { faHandsBubbles, faFilePen, faCamera, faMicrophoneLines } from '@fortawe
 import { useContext, useEffect, useState } from 'react';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { PageContext } from '../../pages/Dashbord';
+import { PageContext } from '../../App';
+import { useSocket } from '../../Context/SocketProvider';
 const DashboardMain = () => {
   const navigate = useNavigate();
   const [callHistory, setCallHistory] = useState([]);
   const [error, setError] = useState("");
 
+  const {callUser} = useSocket();
   const { setPage } = useContext(PageContext);
   const fetchCallHistory = async () => {
     try {
@@ -37,7 +39,9 @@ const DashboardMain = () => {
 
 
   const caling = (dialer) => {
-    navigate(`/calling/${dialer}`);
+    callUser(dialer);
+    navigate(`/call`);
+
   }
 
 
@@ -62,43 +66,41 @@ const DashboardMain = () => {
 
 
 
-      <div style={{ display: 'flex' }}>
+
+      <div className='work-menu' style={{ display: 'flex' }}>
         <div className="task-menu">
           <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(11)}>
-            <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faMicrophoneLines} /> Speech TO ISL <FontAwesomeIcon icon={faHandsBubbles} />
+            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faMicrophoneLines} /> Speech TO ISL <FontAwesomeIcon icon={faHandsBubbles} />
             </h3>
           </div>
           <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(12)}>
-            <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faFilePen} /> Text To ISL <FontAwesomeIcon icon={faHandsBubbles} /></h3>
+            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faFilePen} /> Text To ISL <FontAwesomeIcon icon={faHandsBubbles} /></h3>
           </div>
           <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(13)}>
-            <h3 className="text-xl font-bold mb-2"> <FontAwesomeIcon icon={faHandsBubbles} /> ISL To  Speech <FontAwesomeIcon icon={faMicrophoneLines} /></h3>
+            <h3 className="font-bold mb-2 text-controller"> <FontAwesomeIcon icon={faHandsBubbles} /> ISL To  Speech <FontAwesomeIcon icon={faMicrophoneLines} /></h3>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-3">
-            <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faHandsBubbles} /> ISL TO Text <FontAwesomeIcon icon={faFilePen} /></h3>
+          <div className="bg-white shadow-md rounded-lg p-3" onClick={() => setPage(14)}>
+            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faHandsBubbles} /> ISL TO Text <FontAwesomeIcon icon={faFilePen} /></h3>
           </div>
           <div className="bg-white shadow-md rounded-lg p-3">
-            <h3 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faCamera} /> Live Video Translator</h3>
+            <h3 className="font-bold mb-2 text-controller"><FontAwesomeIcon icon={faCamera} /> Live Video Translator</h3>
           </div>
         </div>
-        <div style={{ flex: '3', paddingRight: '60px' }}>
-          <h3 style={{ color: 'white', paddingTop: '30px', textAlign: 'center' }}>Call list for today</h3>
+        <div className='res-call-list' style={{ flex: '3', paddingRight: '60px' }}>
+          <h3 style={{ color: 'white', paddingTop: '30px', textAlign: 'center' }}>Friend List</h3>
           <div className='current-call-list'>
             {
               callHistory.map(item => {
-                let time = item.meetingtime.split(/[T+]/)[1]
                 return <div key={item.id} className='item-lists'>
-                  <div style={{ display: 'flex', paddingLeft: '30px' }}>
+                  <div style={{ display: 'flex' }}>
                     <img src='https://up.yimg.com/ib/th?id=OIP.GqGVPkLpUlSo5SmeDogUdwHaHa&pid=Api&rs=1&c=1&qlt=95&w=104&h=104' width={50} height={40} style={{ borderRadius: '50%', marginLeft: '30px' }} />
-                    <div style={{ marginLeft: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                       <h5 style={{ display: 'inline' }}>{item.receiver}</h5>
-                      <h6>Time - {time}</h6>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '20px', paddingRight: '60px' }}>
+                  <div style={{ display: 'flex', gap: '20px', paddingRight: '20px' }}>
                     <button className='join-btn' onClick={() => caling(item.receiver)}>join</button>
-                    <button className='edit-btn'>edit</button>
                   </div>
                 </div>
               })
@@ -117,7 +119,7 @@ const DashboardMain = () => {
 
 
 
-    </div>
+    </div >
   );
 };
 

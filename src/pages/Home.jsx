@@ -38,9 +38,21 @@ const Home = () => {
               Come with us and experience the world beyond your <span>Imagination</span>
             </h5>
           </div>
-
         </div>
 
+        <header className="w-full bg-blue-500 text-white py-16">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold">
+              Bridging Communication with Indian Sign Language
+            </h1>
+            <p className="mt-4 text-lg">
+              Empowering individuals with a seamless speech-to-ISL translator.
+            </p>
+            <button className="mt-6 px-8 py-3 bg-white text-blue-500 font-semibold rounded-lg shadow-lg hover:bg-gray-100">
+              Get Started
+            </button>
+          </div>
+        </header>
 
 
         <div className='home-sec-2'>
@@ -115,9 +127,6 @@ const Home = () => {
 
 
       <Footer />
-
-
-
     </>
   )
 }
